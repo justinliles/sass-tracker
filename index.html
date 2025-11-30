@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sass Tracker ✨</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    // Lucide icons (inline SVG components)
+    const Crown = ({ size = 24, className = '' }) => `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">
+        <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/>
+      </svg>`;
+    
+    const Wind = ({ size = 24, className = '' }) => `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">
+        <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/>
+        <path d="M9.6 4.6A2 2 0 1 1 11 8H2"/>
+        <path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>
+      </svg>`;
+    
+    const Flame = ({ size = 24, className = '' }) => `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>`;
+    
+    const Users = ({ size = 24, className = '' }) => `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>`;
+    
+    const Trophy = ({ size = 24, className = '' }) => `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+        <path d="M4 22h16"/>
+        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+      </svg>`;
+    
+    const Heart = ({ size = 24, className = '' }) => `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">
+        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+      </svg>`;
+    
+    const Award = ({ size = 24, className = '' }) => `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">
+        <circle cx="12" cy="8" r="6"/>
+        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+      </svg>`;
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpV7zymYf8io3C1Uq23endekHyjQJmLAQ",
+      authDomain: "sass-tracker-99ab5.firebaseapp.com",
+      databaseURL: "https://sass-tracker-99ab5-default-rtdb.firebaseio.com",
+      projectId: "sass-tracker-99ab5",
+      storageBucket: "sass-tracker-99ab5.firebasestorage.app",
+      messagingSenderId: "42632150330",
+      appId: "1:42632150330:web:9c3022a9df30458face403",
+      measurementId: "G-QRK5N76DNW"
+    };
+
+    // App State
+    let state = {
+      data: {
+        events: [],
+        allTimeScores: { nayra: 0, ezra: 0, justin: 0 }
+      },
+      activeTab: 'today',
+      noteModal: null,
+      note: '',
+      selectedDate: null,
+      currentUser: null,
+      showUserSelect: true,
+      roomId: '',
+      isConnected: false
+    };
+
+    const players = [
+      { id: 'nayra', name: 'Nayra', icon: Crown, color: 'bg-purple-500' },
+      { id: 'ezra', name: 'Ezra', icon: Wind, color: 'bg-blue-500' },
+      { id: 'justin', name: 'Justin', icon: Flame, color: 'bg-orange-500' }
+    ];
+
+    // Helper Functions
+    const getTodayString = () => new Date().toISOString().split('T')[0];
+
+    const getTodayScores = () => {
+      const today = getTodayString();
+      const scores = { nayra: 0, ezra: 0, justin: 0 };
+      state.data.events
+        .filter(e => e.date === today)
+        .forEach(e => {
+          scores[e.receiverId] += e.value;
+        });
+      return scores;
+    };
+
+    const getTodayEvents = () => {
+      const today = getTodayString();
+      return state.data.events.filter(e => e.date === today);
+    };
+
+    const getSassChampion = (scores) => {
+      const entries = Object.entries(scores);
+      const max = Math.max(...entries.map(([_, score]) => score));
+      const champion = entries.find(([_, score]) => score === max);
+      return champion ? { id: champion[0], score: max } : null;
+    };
+
+    const getWholesomeHero = (scores) => {
+      const entries = Object.entries(scores);
+      const min = Math.min(...entries.map(([_, score]) => score));
+      if (min >= 0) return null;
+      const hero = entries.find(([_, score]) => score === min);
+      return hero ? { id: hero[0], score: min } : null;
+    };
+
+    const formatDate = (dateStr) => {
+      const date = new Date(dateStr + 'T00:00:00');
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      if (dateStr === getTodayString()) return 'Today';
+      if (dateStr === yesterday.toISOString().split('T')[0]) return 'Yesterday';
+      
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    // Firebase Connection
+    let firebaseDB = null;
+
+    const initFirebase = async () => {
+      if (!state.roomId || !state.isConnected) return;
+
+      try {
+        console.log('Loading Firebase for room:', state.roomId);
+        
+        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+        const { getDatabase, ref, onValue, set } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+        
+        console.log('Firebase modules loaded');
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const roomRef = ref(db, `rooms/${state.roomId}`);
+
+        console.log('Firebase initialized, listening for changes...');
+
+        onValue(roomRef, (snapshot) => {
+          const val = snapshot.val();
+          console.log('Firebase data received:', val);
+          
+          if (val) {
+            state.data = val;
+          } else {
+            console.log('Initializing new room');
+            const initialData = {
+              events: [],
+              allTimeScores: { nayra: 0, ezra: 0, justin: 0 }
+            };
+            set(roomRef, initialData);
+            state.data = initialData;
+          }
+          render();
+        });
+
+        firebaseDB = { db, roomRef, set, ref };
+        console.log('Firebase setup complete');
+      } catch (error) {
+        console.error('Firebase error:', error);
+        alert('Error connecting to Firebase: ' + error.message);
+      }
+    };
+
+    // Add Sass Event
+    const addSassEvent = async (receiverId, value, eventNote = '') => {
+      if (!state.currentUser) {
+        alert('Please select who you are first!');
+        return;
+      }
+
+      console.log('Adding sass event:', { currentUser: state.currentUser, receiverId, value, eventNote });
+
+      const today = getTodayString();
+      const todayEvents = state.data.events.filter(e => 
+        e.date === today && e.receiverId === receiverId
+      );
+      
+      const todayTotal = todayEvents.reduce((sum, e) => sum + Math.abs(e.value), 0);
+      if (todayTotal >= 40) {
+        alert('Daily limit reached! (Max 40 events per person per day)');
+        return;
+      }
+
+      const newEvent = {
+        id: Date.now(),
+        giverId: state.currentUser,
+        receiverId,
+        value,
+        note: eventNote,
+        date: today,
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      console.log('New event created:', newEvent);
+
+      const newData = {
+        events: [newEvent, ...state.data.events],
+        allTimeScores: {
+          ...state.data.allTimeScores,
+          [receiverId]: state.data.allTimeScores[receiverId] + value
+        }
+      };
+
+      console.log('New data state:', newData);
+
+      if (state.isConnected && firebaseDB) {
+        try {
+          await firebaseDB.set(firebaseDB.roomRef, newData);
+          console.log('Data saved to Firebase');
+        } catch (error) {
+          console.error('Firebase error:', error);
+          alert('Error saving to Firebase. Saving locally instead.');
+          state.data = newData;
+          render();
+        }
+      } else {
+        console.log('Saving to local state (not connected to Firebase)');
+        state.data = newData;
+        render();
+      }
+
+      state.noteModal = null;
+      state.note = '';
+      render();
+    };
+
+    // Render Function
+    const render = () => {
+      const app = document.getElementById('app');
+      const todayScores = getTodayScores();
+      const todayEvents = getTodayEvents();
+      const todayChampion = getSassChampion(todayScores);
+      const todayHero = getWholesomeHero(todayScores);
+
+      app.innerHTML = `
+        <div class="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4">
+          <div class="max-w-4xl mx-auto">
+            
+            ${state.showUserSelect ? `
+              <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-xl p-8 max-w-md w-full">
+                  <div class="text-center mb-6">
+                    ${Users({ size: 48, className: 'mx-auto text-purple-500 mb-4' })}
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome to Sass Tracker!</h2>
+                    <p class="text-gray-600">First, let's set up your shared room</p>
+                  </div>
+
+                  ${!state.isConnected ? `
+                    <div class="space-y-4">
+                      <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                          Room ID (share this with your group!)
+                        </label>
+                        <input
+                          type="text"
+                          id="roomIdInput"
+                          value="${state.roomId}"
+                          placeholder="Enter a room name (e.g., 'family2024')"
+                          class="w-full p-3 border border-gray-300 rounded-lg"
+                        />
+                        <p class="text-xs text-gray-500 mt-1">
+                          Create a new room or enter an existing one to join
+                        </p>
+                      </div>
+                      <button
+                        onclick="connectToRoom()"
+                        class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg"
+                      >
+                        Connect to Room
+                      </button>
+                      <div class="text-center">
+                        <button
+                          onclick="skipFirebase()"
+                          class="text-sm text-gray-600 hover:text-purple-600 underline"
+                        >
+                          Skip and use local-only mode (no sync)
+                        </button>
+                      </div>
+                    </div>
+                  ` : `
+                    <div class="space-y-4">
+                      <div class="bg-green-50 p-3 rounded-lg text-center">
+                        <p class="text-sm text-green-800">
+                          ✓ Connected to room: <span class="font-bold">${state.roomId}</span>
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">
+                          Who are you?
+                        </label>
+                        <div class="space-y-2">
+                          ${players.map(player => `
+                            <button
+                              onclick="selectUser('${player.id}')"
+                              class="w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
+                                state.currentUser === player.id
+                                  ? 'border-purple-500 bg-purple-50'
+                                  : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                              }"
+                            >
+                              <div class="${player.color} p-2 rounded-lg">
+                                ${player.icon({ size: 24, className: 'text-white' })}
+                              </div>
+                              <span class="text-lg font-semibold text-gray-800">
+                                ${player.name}
+                              </span>
+                            </button>
+                          `).join('')}
+                        </div>
+                      </div>
+                    </div>
+                  `}
+                </div>
+              </div>
+            ` : ''}
+
+            ${state.currentUser ? `
+              <div class="flex justify-between items-center mb-4">
+                <div class="bg-white rounded-lg shadow-md px-4 py-2 flex items-center gap-2">
+                  <span class="text-sm text-gray-600">Logged in as:</span>
+                  <span class="font-bold text-gray-800">
+                    ${players.find(p => p.id === state.currentUser)?.name}
+                  </span>
+                </div>
+                <button
+                  onclick="switchUser()"
+                  class="text-sm text-purple-600 hover:text-purple-700 font-semibold"
+                >
+                  Switch User
+                </button>
+              </div>
+            ` : ''}
+
+            <div class="text-center mb-8 mt-4">
+              <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                ✨ Sass Tracker ✨
+              </h1>
+              <p class="text-gray-600">Track the daily sass & wholesome moments</p>
+              ${state.isConnected ? `
+                <p class="text-sm text-purple-600 mt-1">
+                  Room: <span class="font-bold">${state.roomId}</span>
+                </p>
+              ` : ''}
+            </div>
+
+            <div class="flex gap-2 mb-6 bg-white rounded-lg p-2 shadow-md">
+              <button
+                onclick="switchTab('today')"
+                class="flex-1 py-3 px-4 rounded-md font-semibold transition-all ${
+                  state.activeTab === 'today'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }"
+              >
+                Today
+              </button>
+              <button
+                onclick="switchTab('history')"
+                class="flex-1 py-3 px-4 rounded-md font-semibold transition-all ${
+                  state.activeTab === 'history'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }"
+              >
+                History
+              </button>
+              <button
+                onclick="switchTab('stats')"
+                class="flex-1 py-3 px-4 rounded-md font-semibold transition-all ${
+                  state.activeTab === 'stats'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }"
+              >
+                Stats
+              </button>
+            </div>
+
+            ${state.activeTab === 'today' ? `
+              <div class="space-y-6">
+                ${players.map(player => {
+                  const todayScore = todayScores[player.id];
+                  const allTimeScore = state.data.allTimeScores[player.id];
+                  
+                  const maxTodayRange = 20;
+                  const maxAllTimeRange = 200;
+                  
+                  const todayAngle = Math.max(-90, Math.min(90, (todayScore / maxTodayRange) * 90));
+                  const allTimeAngle = Math.max(-90, Math.min(90, (allTimeScore / maxAllTimeRange) * 90));
+                  
+                  return `
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                      <div class="flex items-center gap-3 mb-6">
+                        <div class="${player.color} p-3 rounded-lg">
+                          ${player.icon({ size: 28, className: 'text-white' })}
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800">${player.name}</h2>
+                      </div>
+                      
+                      <div class="grid grid-cols-2 gap-6 mb-6">
+                        <div class="flex flex-col items-center">
+                          <div class="relative w-40 h-20 mb-2">
+                            <svg viewBox="0 0 200 100" class="w-full h-full">
+                              <path d="M 20 90 A 80 80 0 0 1 180 90" fill="none" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round"/>
+                              <path d="M 20 90 A 80 80 0 0 1 100 10" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round" opacity="0.3"/>
+                              <path d="M 100 10 A 80 80 0 0 1 180 90" fill="none" stroke="#ef4444" stroke-width="16" stroke-linecap="round" opacity="0.3"/>
+                              <line x1="100" y1="90" x2="100" y2="75" stroke="#9ca3af" stroke-width="2"/>
+                              <g transform="rotate(${todayAngle} 100 90)">
+                                <line x1="100" y1="90" x2="100" y2="30" stroke="${todayScore >= 0 ? '#ef4444' : '#10b981'}" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="100" cy="90" r="6" fill="#374151"/>
+                              </g>
+                            </svg>
+                            <div class="absolute bottom-0 left-0 right-0 text-center">
+                              <p class="text-3xl font-bold text-gray-800">
+                                ${todayScore > 0 ? '+' : ''}${todayScore}
+                              </p>
+                            </div>
+                          </div>
+                          <p class="text-sm font-semibold text-gray-600">Today</p>
+                          <p class="text-xs text-gray-400">±${maxTodayRange} max</p>
+                        </div>
+                        
+                        <div class="flex flex-col items-center">
+                          <div class="relative w-40 h-20 mb-2">
+                            <svg viewBox="0 0 200 100" class="w-full h-full">
+                              <path d="M 20 90 A 80 80 0 0 1 180 90" fill="none" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round"/>
+                              <path d="M 20 90 A 80 80 0 0 1 100 10" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round" opacity="0.3"/>
+                              <path d="M 100 10 A 80 80 0 0 1 180 90" fill="none" stroke="#ef4444" stroke-width="16" stroke-linecap="round" opacity="0.3"/>
+                              <line x1="100" y1="90" x2="100" y2="75" stroke="#9ca3af" stroke-width="2"/>
+                              <g transform="rotate(${allTimeAngle} 100 90)">
+                                <line x1="100" y1="90" x2="100" y2="30" stroke="${allTimeScore >= 0 ? '#ef4444' : '#10b981'}" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="100" cy="90" r="6" fill="#374151"/>
+                              </g>
+                            </svg>
+                            <div class="absolute bottom-0 left-0 right-0 text-center">
+                              <p class="text-3xl font-bold text-gray-800">
+                                ${allTimeScore > 0 ? '+' : ''}${allTimeScore}
+                              </p>
+                            </div>
+                          </div>
+                          <p class="text-sm font-semibold text-gray-600">All-Time</p>
+                          <p class="text-xs text-gray-400">±${maxAllTimeRange} max</p>
+                        </div>
+                      </div>
+                      
+                      <div class="flex gap-3">
+                        <button
+                          onclick="openNoteModal('${player.id}', 1)"
+                          class="flex-1 bg-gradient-to-r from-red-500 to-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all"
+                        >
+                          +1 Sass
+                        </button>
+                        <button
+                          onclick="openNoteModal('${player.id}', -1)"
+                          class="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all"
+                        >
+                          −1 Sass
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+
+                ${(todayChampion || todayHero) ? `
+                  <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      ${Award({ size: 24, className: 'text-yellow-500' })}
+                      Today's Awards
+                    </h3>
+                    <div class="space-y-3">
+                      ${todayChampion && todayChampion.score > 0 ? `
+                        <div class="flex items-center gap-3 bg-yellow-50 p-4 rounded-lg">
+                          ${Trophy({ size: 24, className: 'text-yellow-500' })}
+                          <div>
+                            <p class="font-semibold text-gray-800">🏆 Sass Lord of the Day</p>
+                            <p class="text-sm text-gray-600">
+                              ${players.find(p => p.id === todayChampion.id)?.name} with +${todayChampion.score}
+                            </p>
+                          </div>
+                        </div>
+                      ` : ''}
+                      ${todayHero ? `
+                        <div class="flex items-center gap-3 bg-green-50 p-4 rounded-lg">
+                          ${Heart({ size: 24, className: 'text-green-500' })}
+                          <div>
+                            <p class="font-semibold text-gray-800">😇 Wholesome Hero</p>
+                            <p class="text-sm text-gray-600">
+                              ${players.find(p => p.id === todayHero.id)?.name} with ${todayHero.score}
+                            </p>
+                          </div>
+                        </div>
+                      ` : ''}
+                    </div>
+                  </div>
+                ` : ''}
+
+                ${todayEvents.length > 0 ? `
+                  <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Today's Events</h3>
+                    <div class="space-y-2">
+                      ${todayEvents.map(event => {
+                        const giver = players.find(p => p.id === event.giverId);
+                        const receiver = players.find(p => p.id === event.receiverId);
+                        return `
+                          <div class="p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center gap-3 mb-1">
+                              <span class="text-sm text-gray-500 min-w-[60px]">${event.time}</span>
+                              <div class="flex items-center gap-2 flex-1">
+                                <span class="font-bold text-purple-600">${giver?.name || 'Unknown'}</span>
+                                <span class="text-gray-400">gave</span>
+                                <span class="font-bold text-lg ${event.value > 0 ? 'text-red-500' : 'text-green-500'}">
+                                  ${event.value > 0 ? '+' : ''}${event.value}
+                                </span>
+                                <span class="text-gray-400">sass to</span>
+                                <span class="font-bold text-gray-800">${receiver?.name || 'Unknown'}</span>
+                              </div>
+                            </div>
+                            ${event.note ? `
+                              <div class="ml-[72px] text-sm text-gray-600 italic">
+                                💬 "${event.note}"
+                              </div>
+                            ` : ''}
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+
+            ${state.activeTab === 'history' ? `
+              <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">History coming soon...</h3>
+                <p class="text-gray-600">Check back later for historical data!</p>
+              </div>
+            ` : ''}
+
+            ${state.activeTab === 'stats' ? `
+              <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Stats coming soon...</h3>
+                <p class="text-gray-600">Check back later for detailed statistics!</p>
+              </div>
+            ` : ''}
+
+            ${state.noteModal ? `
+              <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-xl p-6 max-w-md w-full">
+                  <h3 class="text-xl font-bold text-gray-800 mb-4">
+                    Add ${state.noteModal.value > 0 ? 'Sass' : 'Wholesome'} Event
+                  </h3>
+                  <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                    <div class="flex items-center justify-center gap-3 text-lg">
+                      <span class="font-bold text-purple-600">
+                        ${players.find(p => p.id === state.currentUser)?.name}
+                      </span>
+                      <span class="text-gray-400">→</span>
+                      <span class="font-bold ${state.noteModal.value > 0 ? 'text-red-500' : 'text-green-500'}">
+                        ${state.noteModal.value > 0 ? '+1' : '−1'}
+                      </span>
+                      <span class="text-gray-400">→</span>
+                      <span class="font-bold text-gray-800">
+                        ${players.find(p => p.id === state.noteModal.receiverId)?.name}
+                      </span>
+                    </div>
+                  </div>
+                  <textarea
+                    id="noteTextarea"
+                    placeholder="Optional note: What happened? (e.g., 'epic eye roll', 'shared snack')"
+                    class="w-full p-3 border border-gray-300 rounded-lg mb-4 h-24 resize-none"
+                    maxlength="100"
+                  >${state.note}</textarea>
+                  <div class="flex gap-3">
+                    <button
+                      onclick="closeNoteModal()"
+                      class="flex-1 py-2 px-4 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onclick="saveNote()"
+                      class="flex-1 py-2 px-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    };
+
+    // Global Functions
+    window.connectToRoom = () => {
+      const input = document.getElementById('roomIdInput');
+      state.roomId = input.value.trim();
+      if (!state.roomId) {
+        alert('Please enter a room ID');
+        return;
+      }
+      state.isConnected = true;
+      initFirebase();
+      render();
+    };
+
+    window.skipFirebase = () => {
+      state.roomId = 'local-only';
+      state.isConnected = false;
+      state.showUserSelect = false;
+      state.currentUser = 'nayra';
+      render();
+    };
+
+    window.selectUser = (userId) => {
+      state.currentUser = userId;
+      state.showUserSelect = false;
+      render();
+    };
+
+    window.switchUser = () => {
+      state.showUserSelect = true;
+      render();
+    };
+
+    window.switchTab = (tab) => {
+      state.activeTab = tab;
+      render();
+    };
+
+    window.openNoteModal = (receiverId, value) => {
+      state.noteModal = { receiverId, value };
+      render();
+      // Focus textarea after render
+      setTimeout(() => {
+        const textarea = document.getElementById('noteTextarea');
+        if (textarea) textarea.focus();
+      }, 100);
+    };
+
+    window.closeNoteModal = () => {
+      state.noteModal = null;
+      state.note = '';
+      render();
+    };
+
+    window.saveNote = () => {
+      const textarea = document.getElementById('noteTextarea');
+      const note = textarea ? textarea.value : '';
+      addSassEvent(state.noteModal.receiverId, state.noteModal.value, note);
+    };
+
+    // Handle room ID input changes
+    document.addEventListener('input', (e) => {
+      if (e.target.id === 'roomIdInput') {
+        state.roomId = e.target.value;
+      }
+      if (e.target.id === 'noteTextarea') {
+        state.note = e.target.value;
+      }
+    });
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
