@@ -198,6 +198,15 @@
       return scores;
     };
 
+    const updateLifetimeScores = () => {
+      // Calculate lifetime scores from all events
+      const lifetime = { nayra: 0, ezra: 0, justin: 0 };
+      state.data.events.forEach(e => {
+        lifetime[e.receiverId] += e.value;
+      });
+      return lifetime;
+    };
+
     const getTodayEvents = () => {
       const today = getTodayString();
       return state.data.events.filter(e => e.date === today);
@@ -292,9 +301,18 @@
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       };
 
+      const updatedEvents = [newEvent, ...state.data.events];
+      
+      // Calculate lifetime scores from all events
+      const lifetimeScores = { nayra: 0, ezra: 0, justin: 0 };
+      updatedEvents.forEach(e => {
+        lifetimeScores[e.receiverId] += e.value;
+      });
+
       const newData = {
         ...state.data,
-        events: [newEvent, ...state.data.events]
+        events: updatedEvents,
+        lifetimeScores: lifetimeScores
       };
 
       if (state.isConnected && firebaseDB) {
@@ -352,10 +370,19 @@
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       };
 
+      const updatedEvents = [payoffEvent, ...state.data.events];
+      
+      // Recalculate lifetime scores
+      const lifetimeScores = { nayra: 0, ezra: 0, justin: 0 };
+      updatedEvents.forEach(e => {
+        lifetimeScores[e.receiverId] += e.value;
+      });
+
       const newData = {
         ...state.data,
         payoffs: [payoff, ...state.data.payoffs],
-        events: [payoffEvent, ...state.data.events]
+        events: updatedEvents,
+        lifetimeScores: lifetimeScores
       };
 
       if (state.isConnected && firebaseDB) {
@@ -395,25 +422,51 @@
 
                   ${!state.isConnected ? `
                     <div class="space-y-4">
-                      <input
-                        type="text"
-                        id="roomIdInput"
-                        value="${state.roomId}"
-                        placeholder="Enter room name"
-                        class="w-full p-3 border rounded-lg"
-                      />
+                      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <h4 class="font-semibold text-blue-900 mb-2">🏠 Create or Join a Room</h4>
+                        <p class="text-sm text-blue-800">
+                          Rooms let your family sync sass tracking across all devices in real-time.
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                          Room Name
+                        </label>
+                        <input
+                          type="text"
+                          id="roomIdInput"
+                          value="${state.roomId}"
+                          placeholder="e.g., smith-family-2024"
+                          class="w-full p-3 border rounded-lg"
+                        />
+                        <p class="text-xs text-gray-500 mt-2">
+                          💡 <strong>Tip:</strong> Use a unique name like "smith-family-2024" or "jones-household"
+                        </p>
+                      </div>
+
+                      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <p class="text-xs text-yellow-800">
+                          ⚠️ <strong>Important:</strong> Anyone with this room name can access your data. 
+                          Make it unique and only share with family!
+                        </p>
+                      </div>
+
                       <button
                         onclick="connectToRoom()"
-                        class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold"
+                        class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg"
                       >
-                        Connect
+                        🚀 Create/Join Room
                       </button>
-                      <button
-                        onclick="skipFirebase()"
-                        class="w-full text-sm text-gray-600 underline"
-                      >
-                        Skip (local only)
-                      </button>
+                      
+                      <div class="text-center">
+                        <button
+                          onclick="skipFirebase()"
+                          class="text-sm text-gray-600 hover:text-purple-600 underline"
+                        >
+                          Skip - Use Local Mode (No Sync)
+                        </button>
+                      </div>
                     </div>
                   ` : `
                     <div class="space-y-2">
@@ -478,7 +531,7 @@
             <div class="flex gap-2 mb-6 bg-white rounded-lg p-2 shadow-md">
               <button
                 onclick="switchTab('today')"
-                class="flex-1 py-3 rounded-md font-semibold ${
+                class="flex-1 py-3 rounded-md font-semibold text-sm ${
                   state.activeTab === 'today' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'text-gray-600'
                 }"
               >
@@ -486,15 +539,23 @@
               </button>
               <button
                 onclick="switchTab('payoff')"
-                class="flex-1 py-3 rounded-md font-semibold ${
+                class="flex-1 py-3 rounded-md font-semibold text-sm ${
                   state.activeTab === 'payoff' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'text-gray-600'
                 }"
               >
-                Pay Off Sass
+                Pay Off
+              </button>
+              <button
+                onclick="switchTab('stats')"
+                class="flex-1 py-3 rounded-md font-semibold text-sm ${
+                  state.activeTab === 'stats' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'text-gray-600'
+                }"
+              >
+                Stats
               </button>
               <button
                 onclick="switchTab('history')"
-                class="flex-1 py-3 rounded-md font-semibold ${
+                class="flex-1 py-3 rounded-md font-semibold text-sm ${
                   state.activeTab === 'history' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'text-gray-600'
                 }"
               >
@@ -691,6 +752,107 @@
                     </div>
                   `;
                 }).join('')}
+              </div>
+            ` : ''}
+
+            ${state.activeTab === 'stats' ? `
+              <div class="space-y-6">
+                <!-- Lifetime Sass Leaderboard -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                  <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    ${Trophy({ size: 24, className: 'text-yellow-500' })}
+                    Lifetime Sass Totals
+                  </h3>
+                  <div class="space-y-3">
+                    ${players
+                      .sort((a, b) => state.data.lifetimeScores[a.id] - state.data.lifetimeScores[b.id])
+                      .map((player, index) => {
+                        const lifetimeScore = state.data.lifetimeScores[player.id];
+                        const Icon = player.icon;
+                        return `
+                          <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                            <span class="text-2xl font-bold min-w-[30px]">
+                              ${index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                            </span>
+                            <div class="${player.color} p-2 rounded-lg">
+                              ${Icon({ size: 24, className: 'text-white' })}
+                            </div>
+                            <div class="flex-1">
+                              <p class="font-semibold text-gray-800">${player.name}</p>
+                              <p class="text-sm ${lifetimeScore > 0 ? 'text-red-600' : lifetimeScore < 0 ? 'text-green-600' : 'text-gray-500'}">
+                                ${lifetimeScore > 0 ? `${lifetimeScore} sass points accumulated` : lifetimeScore < 0 ? `${Math.abs(lifetimeScore)} credit earned!` : 'Perfectly balanced'}
+                              </p>
+                            </div>
+                            <span class="text-3xl font-bold ${lifetimeScore > 0 ? 'text-red-600' : lifetimeScore < 0 ? 'text-green-600' : 'text-gray-600'}">
+                              ${lifetimeScore > 0 ? '+' : ''}${lifetimeScore}
+                            </span>
+                          </div>
+                        `;
+                      }).join('')}
+                  </div>
+                </div>
+
+                <!-- Total Events -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                  <h3 class="text-xl font-bold text-gray-800 mb-4">📊 Overall Stats</h3>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-red-50 rounded-lg p-4 text-center">
+                      <div class="text-3xl font-bold text-red-600">
+                        ${state.data.events.filter(e => e.value > 0).length}
+                      </div>
+                      <div class="text-sm text-red-800 mt-1">Sass Events</div>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4 text-center">
+                      <div class="text-3xl font-bold text-green-600">
+                        ${state.data.events.filter(e => e.value < 0).length}
+                      </div>
+                      <div class="text-sm text-green-800 mt-1">Good Behavior</div>
+                    </div>
+                    <div class="bg-blue-50 rounded-lg p-4 text-center">
+                      <div class="text-3xl font-bold text-blue-600">
+                        ${state.data.payoffs.length}
+                      </div>
+                      <div class="text-sm text-blue-800 mt-1">Payoffs Completed</div>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4 text-center">
+                      <div class="text-3xl font-bold text-purple-600">
+                        ${state.data.events.length}
+                      </div>
+                      <div class="text-sm text-purple-800 mt-1">Total Events</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Best Day -->
+                ${(() => {
+                  const dates = [...new Set(state.data.events.map(e => e.date))];
+                  if (dates.length === 0) return '';
+                  
+                  const dailyScores = dates.map(date => {
+                    const dayEvents = state.data.events.filter(e => e.date === date);
+                    const totalSass = dayEvents.reduce((sum, e) => sum + e.value, 0);
+                    return { date, totalSass };
+                  });
+                  
+                  const bestDay = dailyScores.reduce((best, day) => 
+                    day.totalSass < best.totalSass ? day : best
+                  );
+                  
+                  return `
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                      <h3 class="text-xl font-bold text-gray-800 mb-4">🌟 Best Day Ever</h3>
+                      <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 text-center">
+                        <div class="text-5xl mb-2">🎉</div>
+                        <div class="text-2xl font-bold text-green-800 mb-1">
+                          ${new Date(bestDay.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        </div>
+                        <div class="text-lg text-green-700">
+                          ${bestDay.totalSass < 0 ? `${Math.abs(bestDay.totalSass)} net good behavior!` : bestDay.totalSass === 0 ? 'Perfect balance!' : `Only ${bestDay.totalSass} sass points`}
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                })()}
               </div>
             ` : ''}
 
