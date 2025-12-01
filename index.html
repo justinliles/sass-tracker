@@ -14,7 +14,7 @@
   <div id="app"></div>
 
   <script type="module">
-    // Lucide icons (inline SVG components)
+    // Lucide icons
     const Crown = ({ size = 24, className = '' }) => `
       <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">
         <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/>
@@ -49,16 +49,24 @@
         <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
         <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
       </svg>`;
-    
-    const Heart = ({ size = 24, className = '' }) => `
+
+    const AlertCircle = ({ size = 24, className = '' }) => `
       <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">
-        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
       </svg>`;
-    
-    const Award = ({ size = 24, className = '' }) => `
+
+    const DollarSign = ({ size = 24, className = '' }) => `
       <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">
-        <circle cx="12" cy="8" r="6"/>
-        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>`;
+
+    const CheckCircle = ({ size = 24, className = '' }) => `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
       </svg>`;
 
     // Firebase configuration
@@ -73,20 +81,104 @@
       measurementId: "G-QRK5N76DNW"
     };
 
+    // Quick Reason Presets - Categorized
+    const quickReasons = {
+      good: {
+        top5: [
+          { emoji: '👍', label: 'Helpful' },
+          { emoji: '🤝', label: 'Sharing' },
+          { emoji: '💬', label: 'Great Attitude' },
+          { emoji: '🧹', label: 'Finished Chores' },
+          { emoji: '❤️', label: 'Kind Moment' }
+        ],
+        helping: [
+          { emoji: '🌟', label: 'Super Helpful' },
+          { emoji: '💗', label: 'Kind Words' },
+          { emoji: '🤝', label: 'Sharing' },
+          { emoji: '🧸', label: 'Gentle w/ Sibling' }
+        ],
+        responsibility: [
+          { emoji: '🧼', label: 'Clean-up Hero' },
+          { emoji: '📚', label: 'Homework Win' },
+          { emoji: '🧹', label: 'Chores Done' },
+          { emoji: '✅', label: 'Task Complete' }
+        ],
+        attitude: [
+          { emoji: '😇', label: 'Calm & Respectful' },
+          { emoji: '👂', label: 'Listening Champ' },
+          { emoji: '🙏', label: 'Great Manners' },
+          { emoji: '💯', label: 'Honest Moment' }
+        ]
+      },
+      sass: {
+        top5: [
+          { emoji: '😑', label: 'Talking Back' },
+          { emoji: '🚫', label: 'Not Listening' },
+          { emoji: '😤', label: 'Attitude Burst' },
+          { emoji: '🗑️', label: 'Didn\'t Clean Up' },
+          { emoji: '🥊', label: 'Sibling Fight' }
+        ],
+        attitude: [
+          { emoji: '😑', label: 'Talking Back' },
+          { emoji: '🙄', label: 'Eye Rolling' },
+          { emoji: '😒', label: 'Snarky Tone' },
+          { emoji: '😤', label: 'Sass Attack' }
+        ],
+        rules: [
+          { emoji: '🚫', label: 'Not Listening' },
+          { emoji: '⚠️', label: 'Rule Break' },
+          { emoji: '❌', label: 'Task Refusal' },
+          { emoji: '⏰', label: 'Bedtime Battle' }
+        ],
+        conflict: [
+          { emoji: '🥊', label: 'Sibling Fight' },
+          { emoji: '🤬', label: 'Instigating' },
+          { emoji: '🗣️', label: 'Interrupting' },
+          { emoji: '😠', label: 'Not Sharing' }
+        ],
+        responsibility: [
+          { emoji: '🗑️', label: 'Mess Left Behind' },
+          { emoji: '🧹', label: 'Didn\'t Clean Up' },
+          { emoji: '🚫', label: 'Chore Refusal' },
+          { emoji: '📱', label: 'Screen Time Fight' }
+        ]
+      }
+    };
+
+    // Consequences for sass debt (when they owe)
+    const consequences = [
+      { id: 'chore', name: 'Extra Chore', cost: 1, icon: '🧹' },
+      { id: 'dish', name: 'Wash Dishes', cost: 2, icon: '🍽️' },
+      { id: 'room', name: 'Clean Room', cost: 3, icon: '🛏️' },
+      { id: 'yard', name: 'Yard Work', cost: 2, icon: '🌱' },
+      { id: 'dollar', name: 'Pay $1', cost: 1, icon: '💵' },
+      { id: 'screen', name: 'Lose Screen Time', cost: 2, icon: '📱' },
+      { id: 'dessert', name: 'No Dessert', cost: 1, icon: '🍰' },
+      { id: 'early-bed', name: 'Early Bedtime', cost: 2, icon: '😴' }
+    ];
+
     // App State
     let state = {
       data: {
         events: [],
-        allTimeScores: { nayra: 0, ezra: 0, justin: 0 }
+        currentScores: { nayra: 0, ezra: 0, justin: 0 },
+        lifetimeScores: { nayra: 0, ezra: 0, justin: 0 },
+        payoffs: [], // When they complete a consequence to pay off sass
+        snapshots: [] // Saved checkpoints of scores and events
       },
       activeTab: 'today',
       noteModal: null,
+      payoffModal: null,
+      snapshotModal: false,
+      snapshotNote: '',
       note: '',
-      selectedDate: null,
+      selectedReason: '',
+      selectedCategory: 'top5', // For quick select modal
       currentUser: null,
       showUserSelect: true,
       roomId: '',
-      isConnected: false
+      isConnected: false,
+      selectedSnapshot: null
     };
 
     const players = [
@@ -98,14 +190,11 @@
     // Helper Functions
     const getTodayString = () => new Date().toISOString().split('T')[0];
 
-    const getTodayScores = () => {
-      const today = getTodayString();
+    const getCurrentScores = () => {
       const scores = { nayra: 0, ezra: 0, justin: 0 };
-      state.data.events
-        .filter(e => e.date === today)
-        .forEach(e => {
-          scores[e.receiverId] += e.value;
-        });
+      state.data.events.forEach(e => {
+        scores[e.receiverId] += e.value;
+      });
       return scores;
     };
 
@@ -114,31 +203,22 @@
       return state.data.events.filter(e => e.date === today);
     };
 
-    const getSassChampion = (scores) => {
-      const entries = Object.entries(scores);
-      const max = Math.max(...entries.map(([_, score]) => score));
-      const champion = entries.find(([_, score]) => score === max);
-      return champion ? { id: champion[0], score: max } : null;
+    const formatDateTime = (timestamp) => {
+      const date = new Date(timestamp);
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     };
 
-    const getWholesomeHero = (scores) => {
-      const entries = Object.entries(scores);
-      const min = Math.min(...entries.map(([_, score]) => score));
-      if (min >= 0) return null;
-      const hero = entries.find(([_, score]) => score === min);
-      return hero ? { id: hero[0], score: min } : null;
-    };
-
-    const formatDate = (dateStr) => {
-      const date = new Date(dateStr + 'T00:00:00');
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      
-      if (dateStr === getTodayString()) return 'Today';
-      if (dateStr === yesterday.toISOString().split('T')[0]) return 'Yesterday';
-      
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const getSassLevel = (score) => {
+      if (score === 0) return { label: 'Clean Slate', color: 'text-gray-600', emoji: '😊' };
+      if (score <= 2) return { label: 'Minor Sass', color: 'text-yellow-600', emoji: '😬' };
+      if (score <= 5) return { label: 'Moderate Sass', color: 'text-orange-600', emoji: '😤' };
+      if (score <= 10) return { label: 'High Sass', color: 'text-red-600', emoji: '🔥' };
+      return { label: 'SASS OVERLOAD', color: 'text-red-800', emoji: '💥' };
     };
 
     // Firebase Connection
@@ -148,30 +228,38 @@
       if (!state.roomId || !state.isConnected) return;
 
       try {
-        console.log('Loading Firebase for room:', state.roomId);
-        
         const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
         const { getDatabase, ref, onValue, set } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
-        
-        console.log('Firebase modules loaded');
         
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const roomRef = ref(db, `rooms/${state.roomId}`);
 
-        console.log('Firebase initialized, listening for changes...');
-
         onValue(roomRef, (snapshot) => {
           const val = snapshot.val();
-          console.log('Firebase data received:', val);
-          
           if (val) {
-            state.data = val;
+            // Migration: Ensure all new fields exist
+            const migratedData = {
+              events: val.events || [],
+              currentScores: val.currentScores || { nayra: 0, ezra: 0, justin: 0 },
+              lifetimeScores: val.lifetimeScores || { nayra: 0, ezra: 0, justin: 0 },
+              payoffs: val.payoffs || [],
+              snapshots: val.snapshots || [],
+              // Add any other new fields with defaults here
+            };
+            state.data = migratedData;
+            
+            // Save migrated data back to Firebase if any fields were added
+            if (!val.snapshots || !val.payoffs) {
+              set(roomRef, migratedData);
+            }
           } else {
-            console.log('Initializing new room');
             const initialData = {
               events: [],
-              allTimeScores: { nayra: 0, ezra: 0, justin: 0 }
+              currentScores: { nayra: 0, ezra: 0, justin: 0 },
+              lifetimeScores: { nayra: 0, ezra: 0, justin: 0 },
+              payoffs: [],
+              snapshots: []
             };
             set(roomRef, initialData);
             state.data = initialData;
@@ -180,83 +268,117 @@
         });
 
         firebaseDB = { db, roomRef, set, ref };
-        console.log('Firebase setup complete');
       } catch (error) {
         console.error('Firebase error:', error);
-        alert('Error connecting to Firebase: ' + error.message);
       }
     };
 
     // Add Sass Event
-    const addSassEvent = async (receiverId, value, eventNote = '') => {
+    const addSassEvent = async (receiverId, value, eventNote = '', reason = '') => {
       if (!state.currentUser) {
         alert('Please select who you are first!');
         return;
       }
 
-      console.log('Adding sass event:', { currentUser: state.currentUser, receiverId, value, eventNote });
-
-      const today = getTodayString();
-      const todayEvents = state.data.events.filter(e => 
-        e.date === today && e.receiverId === receiverId
-      );
-      
-      const todayTotal = todayEvents.reduce((sum, e) => sum + Math.abs(e.value), 0);
-      if (todayTotal >= 40) {
-        alert('Daily limit reached! (Max 40 events per person per day)');
-        return;
-      }
-
       const newEvent = {
         id: Date.now(),
+        timestamp: Date.now(),
         giverId: state.currentUser,
         receiverId,
         value,
         note: eventNote,
-        date: today,
+        reason: reason,
+        date: getTodayString(),
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       };
 
-      console.log('New event created:', newEvent);
-
       const newData = {
-        events: [newEvent, ...state.data.events],
-        allTimeScores: {
-          ...state.data.allTimeScores,
-          [receiverId]: state.data.allTimeScores[receiverId] + value
-        }
+        ...state.data,
+        events: [newEvent, ...state.data.events]
       };
-
-      console.log('New data state:', newData);
 
       if (state.isConnected && firebaseDB) {
         try {
           await firebaseDB.set(firebaseDB.roomRef, newData);
-          console.log('Data saved to Firebase');
         } catch (error) {
-          console.error('Firebase error:', error);
-          alert('Error saving to Firebase. Saving locally instead.');
           state.data = newData;
           render();
         }
       } else {
-        console.log('Saving to local state (not connected to Firebase)');
         state.data = newData;
         render();
       }
 
       state.noteModal = null;
       state.note = '';
+      state.selectedReason = '';
+      render();
+    };
+
+    // Pay Off Sass (complete a consequence)
+    const payOffSass = async (playerId, consequence) => {
+      const currentScore = getCurrentScores()[playerId];
+      
+      if (currentScore <= 0) {
+        alert('No sass debt to pay off!');
+        return;
+      }
+
+      if (currentScore < consequence.cost) {
+        alert(`Consequence too big! Only ${currentScore} sass points owed.`);
+        return;
+      }
+
+      const payoff = {
+        id: Date.now(),
+        timestamp: Date.now(),
+        playerId,
+        consequenceId: consequence.id,
+        consequenceName: consequence.name,
+        cost: consequence.cost,
+        date: getTodayString()
+      };
+
+      // Add event that reduces sass (negative value)
+      const payoffEvent = {
+        id: Date.now() + 1,
+        timestamp: Date.now(),
+        giverId: 'system',
+        receiverId: playerId,
+        value: -consequence.cost,
+        note: `Completed: ${consequence.name}`,
+        reason: 'Sass Payoff',
+        date: getTodayString(),
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      const newData = {
+        ...state.data,
+        payoffs: [payoff, ...state.data.payoffs],
+        events: [payoffEvent, ...state.data.events]
+      };
+
+      if (state.isConnected && firebaseDB) {
+        try {
+          await firebaseDB.set(firebaseDB.roomRef, newData);
+        } catch (error) {
+          state.data = newData;
+          render();
+        }
+      } else {
+        state.data = newData;
+        render();
+      }
+
+      state.payoffModal = null;
       render();
     };
 
     // Render Function
     const render = () => {
       const app = document.getElementById('app');
-      const todayScores = getTodayScores();
+      const currentScores = getCurrentScores();
       const todayEvents = getTodayEvents();
-      const todayChampion = getSassChampion(todayScores);
-      const todayHero = getWholesomeHero(todayScores);
 
       app.innerHTML = `
         <div class="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4">
@@ -267,74 +389,47 @@
                 <div class="bg-white rounded-xl p-8 max-w-md w-full">
                   <div class="text-center mb-6">
                     ${Users({ size: 48, className: 'mx-auto text-purple-500 mb-4' })}
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome to Sass Tracker!</h2>
-                    <p class="text-gray-600">First, let's set up your shared room</p>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Sass Tracker</h2>
+                    <p class="text-gray-600">Track sass & pay it off!</p>
                   </div>
 
                   ${!state.isConnected ? `
                     <div class="space-y-4">
-                      <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                          Room ID (share this with your group!)
-                        </label>
-                        <input
-                          type="text"
-                          id="roomIdInput"
-                          value="${state.roomId}"
-                          placeholder="Enter a room name (e.g., 'family2024')"
-                          class="w-full p-3 border border-gray-300 rounded-lg"
-                        />
-                        <p class="text-xs text-gray-500 mt-1">
-                          Create a new room or enter an existing one to join
-                        </p>
-                      </div>
+                      <input
+                        type="text"
+                        id="roomIdInput"
+                        value="${state.roomId}"
+                        placeholder="Enter room name"
+                        class="w-full p-3 border rounded-lg"
+                      />
                       <button
                         onclick="connectToRoom()"
-                        class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg"
+                        class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold"
                       >
-                        Connect to Room
+                        Connect
                       </button>
-                      <div class="text-center">
-                        <button
-                          onclick="skipFirebase()"
-                          class="text-sm text-gray-600 hover:text-purple-600 underline"
-                        >
-                          Skip and use local-only mode (no sync)
-                        </button>
-                      </div>
+                      <button
+                        onclick="skipFirebase()"
+                        class="w-full text-sm text-gray-600 underline"
+                      >
+                        Skip (local only)
+                      </button>
                     </div>
                   ` : `
-                    <div class="space-y-4">
-                      <div class="bg-green-50 p-3 rounded-lg text-center">
-                        <p class="text-sm text-green-800">
-                          ✓ Connected to room: <span class="font-bold">${state.roomId}</span>
-                        </p>
-                      </div>
-                      
-                      <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-3">
-                          Who are you?
-                        </label>
-                        <div class="space-y-2">
-                          ${players.map(player => `
-                            <button
-                              onclick="selectUser('${player.id}')"
-                              class="w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
-                                state.currentUser === player.id
-                                  ? 'border-purple-500 bg-purple-50'
-                                  : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
-                              }"
-                            >
-                              <div class="${player.color} p-2 rounded-lg">
-                                ${player.icon({ size: 24, className: 'text-white' })}
-                              </div>
-                              <span class="text-lg font-semibold text-gray-800">
-                                ${player.name}
-                              </span>
-                            </button>
-                          `).join('')}
-                        </div>
-                      </div>
+                    <div class="space-y-2">
+                      ${players.map(player => `
+                        <button
+                          onclick="selectUser('${player.id}')"
+                          class="w-full flex items-center gap-3 p-4 rounded-lg border-2 ${
+                            state.currentUser === player.id ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
+                          }"
+                        >
+                          <div class="${player.color} p-2 rounded-lg">
+                            ${player.icon({ size: 24, className: 'text-white' })}
+                          </div>
+                          <span class="text-lg font-semibold">${player.name}</span>
+                        </button>
+                      `).join('')}
                     </div>
                   `}
                 </div>
@@ -343,183 +438,160 @@
 
             ${state.currentUser ? `
               <div class="flex justify-between items-center mb-4">
-                <div class="bg-white rounded-lg shadow-md px-4 py-2 flex items-center gap-2">
-                  <span class="text-sm text-gray-600">Logged in as:</span>
-                  <span class="font-bold text-gray-800">
-                    ${players.find(p => p.id === state.currentUser)?.name}
-                  </span>
+                <div class="bg-white rounded-lg shadow-md px-4 py-2">
+                  <span class="text-sm text-gray-600">Logged in: </span>
+                  <span class="font-bold">${players.find(p => p.id === state.currentUser)?.name}</span>
                 </div>
-                <button
-                  onclick="switchUser()"
-                  class="text-sm text-purple-600 hover:text-purple-700 font-semibold"
-                >
-                  Switch User
-                </button>
+                <button onclick="switchUser()" class="text-sm text-purple-600 font-semibold">Switch</button>
               </div>
             ` : ''}
 
-            <div class="text-center mb-8 mt-4">
-              <h1 class="text-4xl font-bold text-gray-800 mb-2">
-                ✨ Sass Tracker ✨
-              </h1>
-              <p class="text-gray-600">Track the daily sass & wholesome moments</p>
-              ${state.isConnected ? `
-                <p class="text-sm text-purple-600 mt-1">
-                  Room: <span class="font-bold">${state.roomId}</span>
+            <div class="text-center mb-6">
+              <h1 class="text-4xl font-bold text-gray-800 mb-2">✨ Sass Tracker ✨</h1>
+              <p class="text-gray-600">Keep sass low, pay it off with chores!</p>
+            </div>
+
+            <!-- How It Works -->
+            <div class="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-6 mb-6 shadow-lg">
+              <h3 class="font-bold text-gray-800 mb-3 text-center">📖 How It Works</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white rounded-lg p-4 text-center">
+                  <div class="text-3xl mb-2">🔥</div>
+                  <div class="text-sm font-semibold text-red-600">+1 Sass</div>
+                  <div class="text-xs text-gray-600 mt-1">Bad behavior<br/>(Talking back, attitude)</div>
+                  <div class="text-xs text-red-800 mt-2 font-bold">Creates debt!</div>
+                </div>
+                <div class="bg-white rounded-lg p-4 text-center">
+                  <div class="text-3xl mb-2">⭐</div>
+                  <div class="text-sm font-semibold text-green-600">−1 Sass</div>
+                  <div class="text-xs text-gray-600 mt-1">Good behavior<br/>(Helpful, respectful)</div>
+                  <div class="text-xs text-green-800 mt-2 font-bold">Pays down debt!</div>
+                </div>
+              </div>
+              <div class="mt-4 p-3 bg-white rounded-lg">
+                <p class="text-xs text-center text-gray-700">
+                  💡 <strong>Pay off sass with:</strong> Chores, money, losing privileges
                 </p>
-              ` : ''}
+              </div>
             </div>
 
             <div class="flex gap-2 mb-6 bg-white rounded-lg p-2 shadow-md">
               <button
                 onclick="switchTab('today')"
-                class="flex-1 py-3 px-4 rounded-md font-semibold transition-all ${
-                  state.activeTab === 'today'
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                    : 'text-gray-600 hover:bg-gray-100'
+                class="flex-1 py-3 rounded-md font-semibold ${
+                  state.activeTab === 'today' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'text-gray-600'
                 }"
               >
                 Today
               </button>
               <button
+                onclick="switchTab('payoff')"
+                class="flex-1 py-3 rounded-md font-semibold ${
+                  state.activeTab === 'payoff' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'text-gray-600'
+                }"
+              >
+                Pay Off Sass
+              </button>
+              <button
                 onclick="switchTab('history')"
-                class="flex-1 py-3 px-4 rounded-md font-semibold transition-all ${
-                  state.activeTab === 'history'
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                    : 'text-gray-600 hover:bg-gray-100'
+                class="flex-1 py-3 rounded-md font-semibold ${
+                  state.activeTab === 'history' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'text-gray-600'
                 }"
               >
                 History
-              </button>
-              <button
-                onclick="switchTab('stats')"
-                class="flex-1 py-3 px-4 rounded-md font-semibold transition-all ${
-                  state.activeTab === 'stats'
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }"
-              >
-                Stats
               </button>
             </div>
 
             ${state.activeTab === 'today' ? `
               <div class="space-y-6">
                 ${players.map(player => {
-                  const todayScore = todayScores[player.id];
-                  const allTimeScore = state.data.allTimeScores[player.id];
-                  
-                  const maxTodayRange = 20;
-                  const maxAllTimeRange = 200;
-                  
-                  const todayAngle = Math.max(-90, Math.min(90, (todayScore / maxTodayRange) * 90));
-                  const allTimeAngle = Math.max(-90, Math.min(90, (allTimeScore / maxAllTimeRange) * 90));
+                  const score = currentScores[player.id];
+                  const sassLevel = getSassLevel(score);
+                  const maxRange = 20;
+                  const angle = Math.max(-90, Math.min(90, (score / maxRange) * 90));
                   
                   return `
                     <div class="bg-white rounded-xl shadow-lg p-6">
-                      <div class="flex items-center gap-3 mb-6">
-                        <div class="${player.color} p-3 rounded-lg">
-                          ${player.icon({ size: 28, className: 'text-white' })}
+                      <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                          <div class="${player.color} p-3 rounded-lg">
+                            ${player.icon({ size: 28, className: 'text-white' })}
+                          </div>
+                          <div>
+                            <h2 class="text-2xl font-bold text-gray-800">${player.name}</h2>
+                            <p class="text-sm ${sassLevel.color} font-semibold">
+                              ${sassLevel.emoji} ${sassLevel.label}
+                            </p>
+                          </div>
                         </div>
-                        <h2 class="text-2xl font-bold text-gray-800">${player.name}</h2>
+                        ${score > 0 ? `
+                          <div class="text-center">
+                            <div class="text-3xl font-bold text-red-600">${score}</div>
+                            <div class="text-xs text-red-600">sass owed</div>
+                          </div>
+                        ` : score < 0 ? `
+                          <div class="text-center">
+                            <div class="text-3xl font-bold text-green-600">${Math.abs(score)}</div>
+                            <div class="text-xs text-green-600">credit!</div>
+                          </div>
+                        ` : `
+                          <div class="text-center">
+                            <div class="text-3xl">😊</div>
+                            <div class="text-xs text-gray-600">All good!</div>
+                          </div>
+                        `}
                       </div>
                       
-                      <div class="grid grid-cols-2 gap-6 mb-6">
-                        <div class="flex flex-col items-center">
-                          <div class="relative w-40 h-20 mb-2">
-                            <svg viewBox="0 0 200 100" class="w-full h-full">
-                              <path d="M 20 90 A 80 80 0 0 1 180 90" fill="none" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round"/>
-                              <path d="M 20 90 A 80 80 0 0 1 100 10" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round" opacity="0.3"/>
-                              <path d="M 100 10 A 80 80 0 0 1 180 90" fill="none" stroke="#ef4444" stroke-width="16" stroke-linecap="round" opacity="0.3"/>
-                              <line x1="100" y1="90" x2="100" y2="75" stroke="#9ca3af" stroke-width="2"/>
-                              <g transform="rotate(${todayAngle} 100 90)">
-                                <line x1="100" y1="90" x2="100" y2="30" stroke="${todayScore >= 0 ? '#ef4444' : '#10b981'}" stroke-width="3" stroke-linecap="round"/>
-                                <circle cx="100" cy="90" r="6" fill="#374151"/>
-                              </g>
-                            </svg>
-                            <div class="absolute bottom-0 left-0 right-0 text-center">
-                              <p class="text-3xl font-bold text-gray-800">
-                                ${todayScore > 0 ? '+' : ''}${todayScore}
-                              </p>
-                            </div>
+                      <div class="flex flex-col items-center mb-6">
+                        <div class="relative w-64 h-32">
+                          <svg viewBox="0 0 200 100" class="w-full h-full">
+                            <path d="M 20 90 A 80 80 0 0 1 180 90" fill="none" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round"/>
+                            <path d="M 20 90 A 80 80 0 0 1 100 10" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round" opacity="0.3"/>
+                            <path d="M 100 10 A 80 80 0 0 1 180 90" fill="none" stroke="#ef4444" stroke-width="16" stroke-linecap="round" opacity="0.3"/>
+                            <line x1="100" y1="90" x2="100" y2="75" stroke="#9ca3af" stroke-width="2"/>
+                            <g transform="rotate(${angle} 100 90)">
+                              <line x1="100" y1="90" x2="100" y2="30" stroke="${score >= 0 ? '#ef4444' : '#10b981'}" stroke-width="3" stroke-linecap="round"/>
+                              <circle cx="100" cy="90" r="6" fill="#374151"/>
+                            </g>
+                          </svg>
+                          <div class="absolute bottom-0 left-0 right-0 text-center">
+                            <p class="text-4xl font-bold ${score > 0 ? 'text-red-600' : score < 0 ? 'text-green-600' : 'text-gray-600'}">
+                              ${score > 0 ? '+' : ''}${score}
+                            </p>
                           </div>
-                          <p class="text-sm font-semibold text-gray-600">Today</p>
-                          <p class="text-xs text-gray-400">±${maxTodayRange} max</p>
                         </div>
-                        
-                        <div class="flex flex-col items-center">
-                          <div class="relative w-40 h-20 mb-2">
-                            <svg viewBox="0 0 200 100" class="w-full h-full">
-                              <path d="M 20 90 A 80 80 0 0 1 180 90" fill="none" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round"/>
-                              <path d="M 20 90 A 80 80 0 0 1 100 10" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round" opacity="0.3"/>
-                              <path d="M 100 10 A 80 80 0 0 1 180 90" fill="none" stroke="#ef4444" stroke-width="16" stroke-linecap="round" opacity="0.3"/>
-                              <line x1="100" y1="90" x2="100" y2="75" stroke="#9ca3af" stroke-width="2"/>
-                              <g transform="rotate(${allTimeAngle} 100 90)">
-                                <line x1="100" y1="90" x2="100" y2="30" stroke="${allTimeScore >= 0 ? '#ef4444' : '#10b981'}" stroke-width="3" stroke-linecap="round"/>
-                                <circle cx="100" cy="90" r="6" fill="#374151"/>
-                              </g>
-                            </svg>
-                            <div class="absolute bottom-0 left-0 right-0 text-center">
-                              <p class="text-3xl font-bold text-gray-800">
-                                ${allTimeScore > 0 ? '+' : ''}${allTimeScore}
-                              </p>
-                            </div>
-                          </div>
-                          <p class="text-sm font-semibold text-gray-600">All-Time</p>
-                          <p class="text-xs text-gray-400">±${maxAllTimeRange} max</p>
-                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Sass Meter</p>
                       </div>
                       
                       <div class="flex gap-3">
                         <button
                           onclick="openNoteModal('${player.id}', 1)"
-                          class="flex-1 bg-gradient-to-r from-red-500 to-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all"
+                          class="flex-1 bg-gradient-to-r from-red-500 to-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg"
                         >
                           +1 Sass
                         </button>
                         <button
                           onclick="openNoteModal('${player.id}', -1)"
-                          class="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all"
+                          class="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg"
                         >
-                          −1 Sass
+                          −1 Good
                         </button>
                       </div>
+
+                      ${score > 0 ? `
+                        <div class="mt-4">
+                          <button
+                            onclick="openPayoffModal('${player.id}')"
+                            class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg flex items-center justify-center gap-2"
+                          >
+                            ${CheckCircle({ size: 20, className: 'text-white' })}
+                            Pay Off Sass (${score} points owed)
+                          </button>
+                        </div>
+                      ` : ''}
                     </div>
                   `;
                 }).join('')}
-
-                ${(todayChampion || todayHero) ? `
-                  <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                      ${Award({ size: 24, className: 'text-yellow-500' })}
-                      Today's Awards
-                    </h3>
-                    <div class="space-y-3">
-                      ${todayChampion && todayChampion.score > 0 ? `
-                        <div class="flex items-center gap-3 bg-yellow-50 p-4 rounded-lg">
-                          ${Trophy({ size: 24, className: 'text-yellow-500' })}
-                          <div>
-                            <p class="font-semibold text-gray-800">🏆 Sass Lord of the Day</p>
-                            <p class="text-sm text-gray-600">
-                              ${players.find(p => p.id === todayChampion.id)?.name} with +${todayChampion.score}
-                            </p>
-                          </div>
-                        </div>
-                      ` : ''}
-                      ${todayHero ? `
-                        <div class="flex items-center gap-3 bg-green-50 p-4 rounded-lg">
-                          ${Heart({ size: 24, className: 'text-green-500' })}
-                          <div>
-                            <p class="font-semibold text-gray-800">😇 Wholesome Hero</p>
-                            <p class="text-sm text-gray-600">
-                              ${players.find(p => p.id === todayHero.id)?.name} with ${todayHero.score}
-                            </p>
-                          </div>
-                        </div>
-                      ` : ''}
-                    </div>
-                  </div>
-                ` : ''}
 
                 ${todayEvents.length > 0 ? `
                   <div class="bg-white rounded-xl shadow-lg p-6">
@@ -528,18 +600,31 @@
                       ${todayEvents.map(event => {
                         const giver = players.find(p => p.id === event.giverId);
                         const receiver = players.find(p => p.id === event.receiverId);
+                        const isPayoff = event.reason === 'Sass Payoff';
                         return `
-                          <div class="p-3 bg-gray-50 rounded-lg">
+                          <div class="p-3 ${isPayoff ? 'bg-blue-50' : 'bg-gray-50'} rounded-lg">
                             <div class="flex items-center gap-3 mb-1">
                               <span class="text-sm text-gray-500 min-w-[60px]">${event.time}</span>
-                              <div class="flex items-center gap-2 flex-1">
-                                <span class="font-bold text-purple-600">${giver?.name || 'Unknown'}</span>
-                                <span class="text-gray-400">gave</span>
+                              <div class="flex items-center gap-2 flex-1 flex-wrap">
+                                ${!isPayoff ? `
+                                  <span class="font-bold text-purple-600">${giver?.name || 'Unknown'}</span>
+                                  <span class="text-gray-400">gave</span>
+                                ` : ''}
                                 <span class="font-bold text-lg ${event.value > 0 ? 'text-red-500' : 'text-green-500'}">
                                   ${event.value > 0 ? '+' : ''}${event.value}
                                 </span>
-                                <span class="text-gray-400">sass to</span>
-                                <span class="font-bold text-gray-800">${receiver?.name || 'Unknown'}</span>
+                                ${!isPayoff ? `
+                                  <span class="text-gray-400">sass to</span>
+                                  <span class="font-bold text-gray-800">${receiver?.name || 'Unknown'}</span>
+                                ` : `
+                                  <span class="text-gray-400">-</span>
+                                  <span class="font-bold text-blue-600">${receiver?.name} paid off sass</span>
+                                `}
+                                ${event.reason && event.reason !== 'Sass Payoff' ? `
+                                  <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                                    ${event.reason}
+                                  </span>
+                                ` : ''}
                               </div>
                             </div>
                             ${event.note ? `
@@ -556,26 +641,102 @@
               </div>
             ` : ''}
 
+            ${state.activeTab === 'payoff' ? `
+              <div class="space-y-6">
+                ${players.map(player => {
+                  const score = currentScores[player.id];
+                  const availableConsequences = consequences.filter(c => c.cost <= score);
+                  
+                  return `
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                      <div class="flex items-center gap-3 mb-4">
+                        <div class="${player.color} p-3 rounded-lg">
+                          ${player.icon({ size: 28, className: 'text-white' })}
+                        </div>
+                        <div>
+                          <h2 class="text-2xl font-bold text-gray-800">${player.name}</h2>
+                          <p class="text-sm ${score > 0 ? 'text-red-600' : score < 0 ? 'text-green-600' : 'text-gray-600'}">
+                            ${score > 0 ? `${score} sass points owed` : score < 0 ? `${Math.abs(score)} credit!` : 'All clear!'}
+                          </p>
+                        </div>
+                      </div>
+
+                      ${score > 0 ? `
+                        <div class="mb-4">
+                          <h4 class="text-sm font-semibold text-gray-700 mb-3">Available Consequences:</h4>
+                          <div class="grid grid-cols-2 gap-3">
+                            ${availableConsequences.map(consequence => `
+                              <button
+                                onclick="payOffSass('${player.id}', ${JSON.stringify(consequence).replace(/"/g, '&quot;')})"
+                                class="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-center"
+                              >
+                                <div class="text-3xl mb-1">${consequence.icon}</div>
+                                <div class="text-sm font-semibold text-gray-800">${consequence.name}</div>
+                                <div class="text-xs text-purple-600 font-bold mt-1">-${consequence.cost} sass</div>
+                              </button>
+                            `).join('')}
+                          </div>
+                        </div>
+                      ` : score === 0 ? `
+                        <div class="text-center py-8">
+                          <div class="text-5xl mb-2">🎉</div>
+                          <p class="text-gray-600">No sass to pay off!</p>
+                        </div>
+                      ` : `
+                        <div class="text-center py-8">
+                          <div class="text-5xl mb-2">⭐</div>
+                          <p class="text-green-600 font-semibold">In credit! Keep it up!</p>
+                        </div>
+                      `}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            ` : ''}
+
             ${state.activeTab === 'history' ? `
               <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">History coming soon...</h3>
-                <p class="text-gray-600">Check back later for historical data!</p>
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Payoff History</h3>
+                ${state.data.payoffs.length > 0 ? `
+                  <div class="space-y-3">
+                    ${state.data.payoffs.map(payoff => {
+                      const player = players.find(p => p.id === payoff.playerId);
+                      return `
+                        <div class="border border-gray-200 rounded-lg p-4">
+                          <div class="flex items-center justify-between">
+                            <div>
+                              <p class="font-semibold text-gray-800">${player?.name} - ${payoff.consequenceName}</p>
+                              <p class="text-sm text-gray-500">${formatDateTime(payoff.timestamp)}</p>
+                            </div>
+                            <span class="text-lg font-bold text-green-600">-${payoff.cost}</span>
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                ` : `
+                  <div class="text-center py-12">
+                    <div class="text-5xl mb-4">📜</div>
+                    <p class="text-gray-600">No payoffs yet!</p>
+                  </div>
+                `}
               </div>
             ` : ''}
 
-            ${state.activeTab === 'stats' ? `
-              <div class="bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Stats coming soon...</h3>
-                <p class="text-gray-600">Check back later for detailed statistics!</p>
-              </div>
-            ` : ''}
-
+            <!-- Note Modal with Quick Select Grid -->
             ${state.noteModal ? `
               <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                <div class="bg-white rounded-xl p-6 max-w-md w-full">
-                  <h3 class="text-xl font-bold text-gray-800 mb-4">
-                    Add ${state.noteModal.value > 0 ? 'Sass' : 'Wholesome'} Event
-                  </h3>
+                <div class="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                  <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">
+                      ${state.noteModal.value > 0 ? '🔥 Add Sass Event' : '⭐ Add Good Behavior'}
+                    </h3>
+                    <button 
+                      onclick="closeNoteModal()"
+                      class="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                    >×</button>
+                  </div>
+
                   <div class="bg-gray-50 p-4 rounded-lg mb-4">
                     <div class="flex items-center justify-center gap-3 text-lg">
                       <span class="font-bold text-purple-600">
@@ -591,24 +752,151 @@
                       </span>
                     </div>
                   </div>
-                  <textarea
-                    id="noteTextarea"
-                    placeholder="Optional note: What happened? (e.g., 'epic eye roll', 'shared snack')"
-                    class="w-full p-3 border border-gray-300 rounded-lg mb-4 h-24 resize-none"
-                    maxlength="100"
-                  >${state.note}</textarea>
-                  <div class="flex gap-3">
+
+                  <!-- Category Tabs -->
+                  <div class="flex gap-2 mb-4 overflow-x-auto">
+                    ${state.noteModal.value > 0 ? `
+                      <button
+                        onclick="selectCategory('top5')"
+                        class="px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap ${
+                          state.selectedCategory === 'top5' 
+                            ? 'bg-red-500 text-white' 
+                            : 'bg-gray-100 text-gray-700'
+                        }"
+                      >
+                        ⭐ Top 5
+                      </button>
+                      <button
+                        onclick="selectCategory('attitude')"
+                        class="px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap ${
+                          state.selectedCategory === 'attitude' 
+                            ? 'bg-red-500 text-white' 
+                            : 'bg-gray-100 text-gray-700'
+                        }"
+                      >
+                        😤 Attitude
+                      </button>
+                      <button
+                        onclick="selectCategory('rules')"
+                        class="px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap ${
+                          state.selectedCategory === 'rules' 
+                            ? 'bg-red-500 text-white' 
+                            : 'bg-gray-100 text-gray-700'
+                        }"
+                      >
+                        🚫 Rules
+                      </button>
+                      <button
+                        onclick="selectCategory('conflict')"
+                        class="px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap ${
+                          state.selectedCategory === 'conflict' 
+                            ? 'bg-red-500 text-white' 
+                            : 'bg-gray-100 text-gray-700'
+                        }"
+                      >
+                        🥊 Conflict
+                      </button>
+                      <button
+                        onclick="selectCategory('responsibility')"
+                        class="px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap ${
+                          state.selectedCategory === 'responsibility' 
+                            ? 'bg-red-500 text-white' 
+                            : 'bg-gray-100 text-gray-700'
+                        }"
+                      >
+                        🗑️ Tasks
+                      </button>
+                    ` : `
+                      <button
+                        onclick="selectCategory('top5')"
+                        class="px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap ${
+                          state.selectedCategory === 'top5' 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-gray-100 text-gray-700'
+                        }"
+                      >
+                        ⭐ Top 5
+                      </button>
+                      <button
+                        onclick="selectCategory('helping')"
+                        class="px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap ${
+                          state.selectedCategory === 'helping' 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-gray-100 text-gray-700'
+                        }"
+                      >
+                        🤝 Helping
+                      </button>
+                      <button
+                        onclick="selectCategory('responsibility')"
+                        class="px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap ${
+                          state.selectedCategory === 'responsibility' 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-gray-100 text-gray-700'
+                        }"
+                      >
+                        ✅ Tasks
+                      </button>
+                      <button
+                        onclick="selectCategory('attitude')"
+                        class="px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap ${
+                          state.selectedCategory === 'attitude' 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-gray-100 text-gray-700'
+                        }"
+                      >
+                        😇 Attitude
+                      </button>
+                    `}
+                  </div>
+
+                  <!-- Quick Select Grid -->
+                  <div class="mb-4">
+                    <div class="grid grid-cols-2 gap-3">
+                      ${(state.noteModal.value > 0 
+                        ? quickReasons.sass[state.selectedCategory] 
+                        : quickReasons.good[state.selectedCategory]
+                      ).map(reason => `
+                        <button
+                          onclick="selectReasonAndSave('${reason.label}')"
+                          class="p-4 border-2 rounded-lg transition-all ${
+                            state.selectedReason === reason.label
+                              ? 'border-purple-500 bg-purple-50'
+                              : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
+                          }"
+                        >
+                          <div class="text-3xl mb-1">${reason.emoji}</div>
+                          <div class="text-sm font-semibold text-gray-800">${reason.label}</div>
+                        </button>
+                      `).join('')}
+                    </div>
+                  </div>
+
+                  <!-- Optional Custom Note -->
+                  <div class="border-t pt-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                      💬 Add Details (Optional)
+                    </label>
+                    <textarea
+                      id="noteTextarea"
+                      placeholder="e.g., 'at dinner table' or 'helped put away toys'"
+                      class="w-full p-3 border rounded-lg h-20 resize-none text-sm"
+                      maxlength="100"
+                    >${state.note}</textarea>
+                  </div>
+
+                  <div class="flex gap-3 mt-4">
                     <button
                       onclick="closeNoteModal()"
-                      class="flex-1 py-2 px-4 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300"
+                      class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300"
                     >
                       Cancel
                     </button>
                     <button
-                      onclick="saveNote()"
-                      class="flex-1 py-2 px-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg"
+                      onclick="saveNoteWithCustom()"
+                      class="flex-1 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg"
                     >
-                      Save
+                      ${state.selectedReason ? 'Save' : 'Save with Custom Note'}
                     </button>
                   </div>
                 </div>
@@ -623,10 +911,7 @@
     window.connectToRoom = () => {
       const input = document.getElementById('roomIdInput');
       state.roomId = input.value.trim();
-      if (!state.roomId) {
-        alert('Please enter a room ID');
-        return;
-      }
+      if (!state.roomId) return;
       state.isConnected = true;
       initFirebase();
       render();
@@ -634,7 +919,6 @@
 
     window.skipFirebase = () => {
       state.roomId = 'local-only';
-      state.isConnected = false;
       state.showUserSelect = false;
       state.currentUser = 'nayra';
       render();
@@ -658,37 +942,63 @@
 
     window.openNoteModal = (receiverId, value) => {
       state.noteModal = { receiverId, value };
+      state.selectedCategory = 'top5'; // Always start with top 5
       render();
-      // Focus textarea after render
-      setTimeout(() => {
-        const textarea = document.getElementById('noteTextarea');
-        if (textarea) textarea.focus();
-      }, 100);
     };
 
     window.closeNoteModal = () => {
       state.noteModal = null;
       state.note = '';
+      state.selectedReason = '';
+      state.selectedCategory = 'top5';
       render();
+    };
+
+    window.selectCategory = (category) => {
+      state.selectedCategory = category;
+      render();
+    };
+
+    window.selectReason = (reason) => {
+      state.selectedReason = state.selectedReason === reason ? '' : reason;
+      render();
+    };
+
+    window.selectReasonAndSave = (reason) => {
+      state.selectedReason = reason;
+      // Auto-save after selecting
+      const textarea = document.getElementById('noteTextarea');
+      const note = textarea ? textarea.value : '';
+      addSassEvent(state.noteModal.receiverId, state.noteModal.value, note, reason);
     };
 
     window.saveNote = () => {
       const textarea = document.getElementById('noteTextarea');
       const note = textarea ? textarea.value : '';
-      addSassEvent(state.noteModal.receiverId, state.noteModal.value, note);
+      addSassEvent(state.noteModal.receiverId, state.noteModal.value, note, state.selectedReason);
     };
 
-    // Handle room ID input changes
+    window.saveNoteWithCustom = () => {
+      const textarea = document.getElementById('noteTextarea');
+      const note = textarea ? textarea.value : '';
+      addSassEvent(state.noteModal.receiverId, state.noteModal.value, note, state.selectedReason);
+    };
+
+    window.payOffSass = (playerId, consequence) => {
+      payOffSass(playerId, consequence);
+    };
+
+    window.openPayoffModal = (playerId) => {
+      state.payoffModal = playerId;
+      state.activeTab = 'payoff';
+      render();
+    };
+
     document.addEventListener('input', (e) => {
-      if (e.target.id === 'roomIdInput') {
-        state.roomId = e.target.value;
-      }
-      if (e.target.id === 'noteTextarea') {
-        state.note = e.target.value;
-      }
+      if (e.target.id === 'roomIdInput') state.roomId = e.target.value;
+      if (e.target.id === 'noteTextarea') state.note = e.target.value;
     });
 
-    // Initial render
     render();
   </script>
 </body>
