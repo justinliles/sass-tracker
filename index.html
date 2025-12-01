@@ -164,7 +164,8 @@
         currentScores: { nayra: 0, ezra: 0, justin: 0 },
         lifetimeScores: { nayra: 0, ezra: 0, justin: 0 },
         payoffs: [], // When they complete a consequence to pay off sass
-        snapshots: [] // Saved checkpoints of scores and events
+        snapshots: [], // Saved checkpoints of scores and events (PAYOUTS/ROUNDS)
+        lastPayoutTimestamp: 0 // Tracks when the last payout happened
       },
       activeTab: 'today',
       noteModal: null,
@@ -178,7 +179,9 @@
       showUserSelect: true,
       roomId: '',
       isConnected: false,
-      selectedSnapshot: null
+      selectedSnapshot: null,
+      showPayoutModal: false,
+      payoutLabel: ''
     };
 
     const players = [
@@ -192,9 +195,15 @@
 
     const getCurrentScores = () => {
       const scores = { nayra: 0, ezra: 0, justin: 0 };
-      state.data.events.forEach(e => {
-        scores[e.receiverId] += e.value;
-      });
+      const lastPayout = state.data.lastPayoutTimestamp || 0;
+      
+      // Only count events since the last payout
+      state.data.events
+        .filter(e => e.timestamp > lastPayout)
+        .forEach(e => {
+          scores[e.receiverId] += e.value;
+        });
+      
       return scores;
     };
 
@@ -254,12 +263,13 @@
               lifetimeScores: val.lifetimeScores || { nayra: 0, ezra: 0, justin: 0 },
               payoffs: val.payoffs || [],
               snapshots: val.snapshots || [],
+              lastPayoutTimestamp: val.lastPayoutTimestamp || 0,
               // Add any other new fields with defaults here
             };
             state.data = migratedData;
             
             // Save migrated data back to Firebase if any fields were added
-            if (!val.snapshots || !val.payoffs) {
+            if (!val.snapshots || !val.payoffs || val.lastPayoutTimestamp === undefined) {
               set(roomRef, migratedData);
             }
           } else {
@@ -268,7 +278,8 @@
               currentScores: { nayra: 0, ezra: 0, justin: 0 },
               lifetimeScores: { nayra: 0, ezra: 0, justin: 0 },
               payoffs: [],
-              snapshots: []
+              snapshots: [],
+              lastPayoutTimestamp: 0
             };
             set(roomRef, initialData);
             state.data = initialData;
@@ -330,6 +341,52 @@
       state.noteModal = null;
       state.note = '';
       state.selectedReason = '';
+      render();
+    };
+
+    // Make Payout / End Round
+    const makePayout = async (label) => {
+      const currentScores = getCurrentScores();
+      const now = Date.now();
+      
+      const payout = {
+        id: now,
+        timestamp: now,
+        date: getTodayString(),
+        label: label || 'Unnamed Round',
+        totals: { ...currentScores }
+      };
+      
+      const newData = {
+        ...state.data,
+        snapshots: [payout, ...state.data.snapshots],
+        lastPayoutTimestamp: now
+      };
+      
+      if (state.isConnected && firebaseDB) {
+        try {
+          await firebaseDB.set(firebaseDB.roomRef, newData);
+        } catch (error) {
+          state.data = newData;
+          render();
+        }
+      } else {
+        state.data = newData;
+        render();
+      }
+      
+      state.showPayoutModal = false;
+      state.payoutLabel = '';
+      
+      // Show success message
+      const winner = players.reduce((best, player) => 
+        currentScores[player.id] < currentScores[best.id] ? player : best
+      );
+      
+      setTimeout(() => {
+        alert(`🏁 Round Complete!\n\n"${label || 'Round'}"\n\n👑 Winner: ${winner.name} (${currentScores[winner.id]} sass)\n\nAll meters reset to 0! Fresh start! 🎉`);
+      }, 100);
+      
       render();
     };
 
@@ -823,6 +880,16 @@
 
             ${state.activeTab === 'stats' ? `
               <div class="space-y-6">
+                <!-- End Round Button -->
+                <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-1 shadow-lg">
+                  <button
+                    onclick="openPayoutModal()"
+                    class="w-full bg-white rounded-lg p-4 font-semibold text-gray-800 hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    🏁 End Round & Make Payout
+                  </button>
+                </div>
+
                 <!-- Lifetime Sass Leaderboard -->
                 <div class="bg-white rounded-xl shadow-lg p-6">
                   <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -888,6 +955,50 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Payouts & Rounds History -->
+                ${state.data.snapshots.length > 0 ? `
+                  <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">🏁 Payouts & Rounds</h3>
+                    <div class="space-y-3">
+                      ${state.data.snapshots.slice(0, 10).map(snapshot => {
+                        const sortedPlayers = [...players].sort((a, b) => 
+                          snapshot.totals[a.id] - snapshot.totals[b.id]
+                        );
+                        const winner = sortedPlayers[0];
+                        
+                        return `
+                          <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-start justify-between mb-3">
+                              <div>
+                                <p class="font-semibold text-gray-800">📅 ${snapshot.label}</p>
+                                <p class="text-xs text-gray-500">${formatDateTime(snapshot.timestamp)}</p>
+                              </div>
+                              <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                                Round ${state.data.snapshots.indexOf(snapshot) + 1}
+                              </span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                              ${players.map(player => {
+                                const score = snapshot.totals[player.id];
+                                const isWinner = player.id === winner.id;
+                                return `
+                                  <div class="text-center p-2 rounded ${isWinner ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50'}">
+                                    ${isWinner ? '<div class="text-lg mb-1">👑</div>' : ''}
+                                    <div class="text-xs font-semibold text-gray-700">${player.name}</div>
+                                    <div class="text-lg font-bold ${score > 0 ? 'text-red-600' : score < 0 ? 'text-green-600' : 'text-gray-600'}">
+                                      ${score > 0 ? '+' : ''}${score}
+                                    </div>
+                                  </div>
+                                `;
+                              }).join('')}
+                            </div>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                ` : ''}
 
                 <!-- Best Day -->
                 ${(() => {
@@ -1130,6 +1241,73 @@
                 </div>
               </div>
             ` : ''}
+
+            <!-- Payout Modal -->
+            ${state.showPayoutModal ? `
+              <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-xl p-6 max-w-md w-full">
+                  <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">🏁 End Round & Payout</h3>
+                  
+                  <div class="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-4 mb-4">
+                    <p class="text-sm text-gray-700 text-center mb-3">
+                      Current scores will be saved and all meters will reset to 0 for a fresh start!
+                    </p>
+                    
+                    <div class="space-y-2">
+                      ${players.map(player => {
+                        const score = currentScores[player.id];
+                        const Icon = player.icon;
+                        return `
+                          <div class="flex items-center justify-between bg-white rounded-lg p-3">
+                            <div class="flex items-center gap-2">
+                              <div class="${player.color} p-2 rounded-lg">
+                                ${Icon({ size: 20, className: 'text-white' })}
+                              </div>
+                              <span class="font-semibold text-gray-800">${player.name}</span>
+                            </div>
+                            <span class="text-xl font-bold ${score > 0 ? 'text-red-600' : score < 0 ? 'text-green-600' : 'text-gray-600'}">
+                              ${score > 0 ? '+' : ''}${score}
+                            </span>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                      Round Name (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      id="payoutLabelInput"
+                      value="${state.payoutLabel}"
+                      placeholder="e.g., 'Friday Movie Night', 'Weekend Round'"
+                      class="w-full p-3 border rounded-lg"
+                      maxlength="50"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      💡 Examples: \"End of Weekend\", \"School Week\", \"Vacation Round\"
+                    </p>
+                  </div>
+
+                  <div class="flex gap-3">
+                    <button
+                      onclick="closePayoutModal()"
+                      class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onclick="confirmPayout()"
+                      class="flex-1 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg"
+                    >
+                      🏁 End Round
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
           </div>
         </div>
       `;
@@ -1222,9 +1400,27 @@
       render();
     };
 
+    window.openPayoutModal = () => {
+      state.showPayoutModal = true;
+      render();
+    };
+
+    window.closePayoutModal = () => {
+      state.showPayoutModal = false;
+      state.payoutLabel = '';
+      render();
+    };
+
+    window.confirmPayout = () => {
+      const input = document.getElementById('payoutLabelInput');
+      const label = input ? input.value.trim() : '';
+      makePayout(label || `Round ${state.data.snapshots.length + 1}`);
+    };
+
     document.addEventListener('input', (e) => {
       if (e.target.id === 'roomIdInput') state.roomId = e.target.value;
       if (e.target.id === 'noteTextarea') state.note = e.target.value;
+      if (e.target.id === 'payoutLabelInput') state.payoutLabel = e.target.value;
     });
 
     render();
