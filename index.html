@@ -157,6 +157,16 @@
       { id: 'early-bed', name: 'Early Bedtime', cost: 2, icon: '😴' }
     ];
 
+    // Rick Ross Grunts (just for fun, doesn't affect sass scores!)
+    const gruntTypes = [
+      { id: 'unh', sound: 'UNH!', emoji: '😎', label: 'Cool', color: 'from-blue-500 to-cyan-500' },
+      { id: 'woo', sound: 'WOO!', emoji: '🎉', label: 'Happy', color: 'from-yellow-500 to-orange-500' },
+      { id: 'ayy', sound: 'AYYY!', emoji: '🔥', label: 'Fired Up', color: 'from-red-500 to-orange-500' },
+      { id: 'huh', sound: 'HUH!', emoji: '😤', label: 'Angry', color: 'from-purple-500 to-pink-500' },
+      { id: 'boss', sound: 'BOSS!', emoji: '👑', label: 'Feeling Bossy', color: 'from-yellow-400 to-yellow-600' },
+      { id: 'mmm', sound: 'MMMM!', emoji: '😋', label: 'Tasty', color: 'from-green-500 to-emerald-500' }
+    ];
+
     // App State
     let state = {
       data: {
@@ -165,7 +175,8 @@
         lifetimeScores: { nayra: 0, ezra: 0, justin: 0 },
         payoffs: [], // When they complete a consequence to pay off sass
         snapshots: [], // Saved checkpoints of scores and events (PAYOUTS/ROUNDS)
-        lastPayoutTimestamp: 0 // Tracks when the last payout happened
+        lastPayoutTimestamp: 0, // Tracks when the last payout happened
+        grunts: [] // Rick Ross style grunts - just for fun!
       },
       activeTab: 'today',
       noteModal: null,
@@ -181,7 +192,8 @@
       isConnected: false,
       selectedSnapshot: null,
       showPayoutModal: false,
-      payoutLabel: ''
+      payoutLabel: '',
+      showGruntModal: false
     };
 
     const players = [
@@ -264,12 +276,13 @@
               payoffs: val.payoffs || [],
               snapshots: val.snapshots || [],
               lastPayoutTimestamp: val.lastPayoutTimestamp || 0,
+              grunts: val.grunts || [],
               // Add any other new fields with defaults here
             };
             state.data = migratedData;
             
             // Save migrated data back to Firebase if any fields were added
-            if (!val.snapshots || !val.payoffs || val.lastPayoutTimestamp === undefined) {
+            if (!val.snapshots || !val.payoffs || val.lastPayoutTimestamp === undefined || !val.grunts) {
               set(roomRef, migratedData);
             }
           } else {
@@ -279,7 +292,8 @@
               lifetimeScores: { nayra: 0, ezra: 0, justin: 0 },
               payoffs: [],
               snapshots: [],
-              lastPayoutTimestamp: 0
+              lastPayoutTimestamp: 0,
+              grunts: []
             };
             set(roomRef, initialData);
             state.data = initialData;
@@ -341,6 +355,48 @@
       state.noteModal = null;
       state.note = '';
       state.selectedReason = '';
+      render();
+    };
+
+    // Add Grunt (Rick Ross style - just for fun!)
+    const addGrunt = async (playerId, gruntType) => {
+      const grunt = {
+        id: Date.now(),
+        timestamp: Date.now(),
+        playerId,
+        gruntId: gruntType.id,
+        sound: gruntType.sound,
+        emoji: gruntType.emoji,
+        label: gruntType.label,
+        date: getTodayString(),
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      const newData = {
+        ...state.data,
+        grunts: [grunt, ...state.data.grunts]
+      };
+
+      if (state.isConnected && firebaseDB) {
+        try {
+          await firebaseDB.set(firebaseDB.roomRef, newData);
+        } catch (error) {
+          state.data = newData;
+          render();
+        }
+      } else {
+        state.data = newData;
+        render();
+      }
+
+      state.showGruntModal = false;
+      
+      // Show epic grunt notification
+      const player = players.find(p => p.id === playerId);
+      setTimeout(() => {
+        alert(`${gruntType.emoji} ${gruntType.sound} ${gruntType.emoji}\n\n${player.name} dropped a ${gruntType.label} grunt!\n\nNo sass points affected - just pure vibes! 😎`);
+      }, 100);
+      
       render();
     };
 
@@ -762,6 +818,16 @@
                         </button>
                       </div>
 
+                      <!-- Rick Ross Grunt Button -->
+                      <div class="mt-3">
+                        <button
+                          onclick="openGruntModal('${player.id}')"
+                          class="w-full py-2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-gray-900 rounded-lg font-bold hover:shadow-lg flex items-center justify-center gap-2 border-2 border-yellow-700"
+                        >
+                          😎 DROP A GRUNT 😎
+                        </button>
+                      </div>
+
                       ${score > 0 ? `
                         <div class="mt-4">
                           <button
@@ -996,6 +1062,65 @@
                           </div>
                         `;
                       }).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+
+                <!-- Grunt Stats (Rick Ross Vibes!) -->
+                ${state.data.grunts.length > 0 ? `
+                  <div class="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 rounded-xl p-1 shadow-lg">
+                    <div class="bg-gray-900 rounded-lg p-6">
+                      <h3 class="text-xl font-black text-yellow-400 mb-4 flex items-center justify-center gap-2">
+                        🎤 GRUNT LEADERBOARD 🎤
+                      </h3>
+                      <div class="space-y-2">
+                        ${players.map(player => {
+                          const playerGrunts = state.data.grunts.filter(g => g.playerId === player.id);
+                          const gruntCounts = {};
+                          gruntTypes.forEach(gt => {
+                            gruntCounts[gt.id] = playerGrunts.filter(g => g.gruntId === gt.id).length;
+                          });
+                          const totalGrunts = playerGrunts.length;
+                          
+                          return `
+                            <div class="bg-gray-800 rounded-lg p-3">
+                              <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-white">${player.name}</span>
+                                <span class="text-xl font-black text-yellow-400">${totalGrunts} GRUNTS</span>
+                              </div>
+                              <div class="flex gap-2 flex-wrap">
+                                ${gruntTypes.map(gt => 
+                                  gruntCounts[gt.id] > 0 ? `
+                                    <span class="text-xs bg-gray-700 text-white px-2 py-1 rounded">
+                                      ${gt.emoji} ${gruntCounts[gt.id]}
+                                    </span>
+                                  ` : ''
+                                ).join('')}
+                              </div>
+                            </div>
+                          `;
+                        }).join('')}
+                      </div>
+                      
+                      ${state.data.grunts.length > 0 ? `
+                        <div class="mt-4 p-3 bg-gray-800 rounded-lg">
+                          <p class="text-xs text-yellow-200 text-center font-semibold">
+                            RECENT GRUNTS:
+                          </p>
+                          <div class="space-y-1 mt-2">
+                            ${state.data.grunts.slice(0, 5).map(grunt => {
+                              const player = players.find(p => p.id === grunt.playerId);
+                              return `
+                                <div class="flex items-center justify-between text-xs">
+                                  <span class="text-white">${player?.name}</span>
+                                  <span class="text-yellow-300 font-bold">${grunt.emoji} ${grunt.sound}</span>
+                                  <span class="text-gray-400">${grunt.time}</span>
+                                </div>
+                              `;
+                            }).join('')}
+                          </div>
+                        </div>
+                      ` : ''}
                     </div>
                   </div>
                 ` : ''}
@@ -1308,6 +1433,42 @@
                 </div>
               </div>
             ` : ''}
+
+            <!-- Grunt Modal (Rick Ross Style!) -->
+            ${state.showGruntModal ? `
+              <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 rounded-xl p-1 max-w-md w-full shadow-2xl">
+                  <div class="bg-gray-900 rounded-lg p-6">
+                    <h3 class="text-3xl font-black text-yellow-400 mb-2 text-center" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                      🎤 DROP A GRUNT 🎤
+                    </h3>
+                    <p class="text-sm text-yellow-200 text-center mb-4">RICK ROSS STYLE - NO SASS POINTS, JUST VIBES!</p>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                      ${gruntTypes.map(grunt => `
+                        <button
+                          onclick="selectGrunt('${state.showGruntModal}', ${JSON.stringify(grunt).replace(/"/g, '&quot;')})"
+                          class="bg-gradient-to-r ${grunt.color} p-4 rounded-lg hover:scale-105 transition-transform border-2 border-white shadow-lg"
+                        >
+                          <div class="text-4xl mb-1">${grunt.emoji}</div>
+                          <div class="text-xl font-black text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+                            ${grunt.sound}
+                          </div>
+                          <div class="text-xs text-white font-semibold mt-1">${grunt.label}</div>
+                        </button>
+                      `).join('')}
+                    </div>
+
+                    <button
+                      onclick="closeGruntModal()"
+                      class="w-full py-3 bg-gray-700 text-white rounded-lg font-semibold hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
           </div>
         </div>
       `;
@@ -1417,6 +1578,20 @@
       makePayout(label || `Round ${state.data.snapshots.length + 1}`);
     };
 
+    window.openGruntModal = (playerId) => {
+      state.showGruntModal = playerId;
+      render();
+    };
+
+    window.closeGruntModal = () => {
+      state.showGruntModal = false;
+      render();
+    };
+
+    window.selectGrunt = (playerId, gruntType) => {
+      addGrunt(playerId, gruntType);
+    };
+
     document.addEventListener('input', (e) => {
       if (e.target.id === 'roomIdInput') state.roomId = e.target.value;
       if (e.target.id === 'noteTextarea') state.note = e.target.value;
@@ -1427,3 +1602,108 @@
   </script>
 </body>
 </html>
+🎤 YOOOO!!! THE RICK ROSS GRUNT TRACKER IS READY!!! 🎤
+
+📋 COPY ALL THE CODE ABOVE ⬆️
+🔥 WHAT'S NEW - RICK ROSS GRUNT TRACKER!!!
+😎 "DROP A GRUNT" Button:
+BIG GOLD button under each player's sass buttons
+Says: "😎 DROP A GRUNT 😎"
+Doesn't affect sass scores - PURE VIBES ONLY!
+🎤 The Grunt Modal:
+Opens with EPIC styling:
+
+Gold/orange/red gradient border
+Dark background (Rick Ross vibes!)
+"🎤 DROP A GRUNT 🎤" header
+"RICK ROSS STYLE - NO SASS POINTS, JUST VIBES!"
+6 Grunt Types:
+
+😎 UNH! - Cool (blue gradient)
+🎉 WOO! - Happy (yellow/orange)
+🔥 AYYY! - Fired Up (red/orange)
+😤 HUH! - Angry (purple/pink)
+👑 BOSS! - Feeling Bossy (gold)
+😋 MMMM! - Tasty (green)
+Each button has:
+
+Hover scale effect
+White border
+Big emoji
+Sound text
+Label
+📊 GRUNT LEADERBOARD (Stats Tab):
+Dark theme card with gold accents:
+
+🎤 GRUNT LEADERBOARD header
+Shows each player's total grunts
+Breakdown by grunt type
+"RECENT GRUNTS" section showing last 5
+Example:
+
+┌─────────────────────────────┐
+│  🎤 GRUNT LEADERBOARD 🎤    │
+├─────────────────────────────┤
+│ Nayra          12 GRUNTS    │
+│ 😎 5  🎉 3  🔥 2  👑 2     │
+├─────────────────────────────┤
+│ RECENT GRUNTS:              │
+│ Nayra  😎 UNH!    3:45 PM  │
+│ Ezra   🔥 AYYY!   3:42 PM  │
+│ Justin 👑 BOSS!   3:40 PM  │
+└─────────────────────────────┘
+🎉 Grunt Alert:
+When someone drops a grunt:
+
+😎 UNH! 😎
+
+Nayra dropped a Cool grunt!
+
+No sass points affected - just pure vibes! 😎
+💾 Data Structure:
+javascript
+{
+  id: timestamp,
+  timestamp: Date.now(),
+  playerId: 'nayra',
+  gruntId: 'unh',
+  sound: 'UNH!',
+  emoji: '😎',
+  label: 'Cool',
+  date: '2024-12-02',
+  time: '3:45 PM'
+}
+✨ KEY FEATURES:
+✅ NO SASS IMPACT - Pure entertainment!
+✅ Real-time sync - Everyone sees grunts instantly
+✅ Leaderboard tracking - Who's the grunt king?
+✅ Recent grunt feed - See the latest drops
+✅ Epic visuals - Rick Ross approved styling
+✅ 6 grunt types - Express ALL the moods
+✅ Hover effects - Buttons feel ALIVE
+✅ Dark theme - Professional boss vibes
+
+🎮 How It Works:
+Click "😎 DROP A GRUNT 😎"
+Pick your vibe (UNH!, WOO!, AYYY!, etc.)
+Alert pops up with your grunt
+Shows in Stats leaderboard
+NO sass points changed!
+📱 Perfect For:
+Celebrating without affecting scores
+Expressing frustration (😤 HUH!)
+Hyping up wins (🔥 AYYY!)
+Feeling bossy (👑 BOSS!)
+Just having FUN! (🎉 WOO!)
+🚀 Deploy:
+Copy code above
+Paste into GitHub index.html
+Commit: v4.1 - Rick Ross Grunt Tracker 🎤
+Wait 2 minutes
+Hard refresh and DROP SOME GRUNTS!
+THIS IS HILARIOUS AND AWESOME!!! 😂🔥👑
+
+UNH!!! 😎
+
+
+
