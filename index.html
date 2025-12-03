@@ -629,7 +629,7 @@
                 </div>
                 <div class="bg-white rounded-lg p-4 text-center">
                   <div class="text-3xl mb-2">⭐</div>
-                  <div class="text-sm font-semibold text-green-600">−1 Sass-Mends</div>
+                  <div class="text-sm font-semibold text-green-600">−1 Apolo-Sass</div>
                   <div class="text-xs text-gray-600 mt-1">Good behavior<br/>(Helpful, respectful)</div>
                   <div class="text-xs text-green-800 mt-2 font-bold">Pays down debt!</div>
                 </div>
@@ -814,7 +814,7 @@
                           onclick="openNoteModal('${player.id}', -1)"
                           class="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg"
                         >
-                          −1 Sass-Mends
+                          −1 Apolo-Sass
                         </button>
                       </div>
 
@@ -1005,7 +1005,7 @@
                       <div class="text-3xl font-bold text-green-600">
                         ${state.data.events.filter(e => e.value < 0).length}
                       </div>
-                      <div class="text-sm text-green-800 mt-1">Sass-Mends</div>
+                      <div class="text-sm text-green-800 mt-1">Apolo-Sass</div>
                     </div>
                     <div class="bg-blue-50 rounded-lg p-4 text-center">
                       <div class="text-3xl font-bold text-blue-600">
@@ -1149,7 +1149,7 @@
                           ${new Date(bestDay.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                         </div>
                         <div class="text-lg text-green-700">
-                          ${bestDay.totalSass < 0 ? `${Math.abs(bestDay.totalSass)} net sass-mends!` : bestDay.totalSass === 0 ? 'Perfect balance!' : `Only ${bestDay.totalSass} sass points`}
+                          ${bestDay.totalSass < 0 ? `${Math.abs(bestDay.totalSass)} net apolo-sass!` : bestDay.totalSass === 0 ? 'Perfect balance!' : `Only ${bestDay.totalSass} sass points`}
                         </div>
                       </div>
                     </div>
@@ -1193,7 +1193,7 @@
                 <div class="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                   <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xl font-bold text-gray-800">
-                      ${state.noteModal.value > 0 ? '🔥 Add Sass Event' : '⭐ Add Sass-Mends'}
+                      ${state.noteModal.value > 0 ? '🔥 Add Sass Event' : '⭐ Add Apolo-Sass'}
                     </h3>
                     <button 
                       onclick="closeNoteModal()"
@@ -1316,6 +1316,9 @@
 
                   <!-- Quick Select Grid -->
                   <div class="mb-4">
+                    <p class="text-sm text-gray-600 mb-2 font-semibold">
+                      👆 Pick a reason (optional custom note below)
+                    </p>
                     <div class="grid grid-cols-2 gap-3">
                       ${(state.noteModal.value > 0 
                         ? quickReasons.sass[state.selectedCategory] 
@@ -1347,6 +1350,9 @@
                       class="w-full p-3 border rounded-lg h-20 resize-none text-sm"
                       maxlength="100"
                     >${state.note}</textarea>
+                    <p class="text-xs text-gray-500 mt-1">
+                      💡 Add details to any preset reason or use custom note only
+                    </p>
                   </div>
 
                   <div class="flex gap-3 mt-4">
@@ -1360,7 +1366,7 @@
                       onclick="saveNoteWithCustom()"
                       class="flex-1 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg"
                     >
-                      ${state.selectedReason ? 'Save' : 'Save with Custom Note'}
+                      ${state.selectedReason ? `Save "${state.selectedReason}"` : 'Save with Custom Note'}
                     </button>
                   </div>
                 </div>
@@ -1508,6 +1514,12 @@
     };
 
     window.openNoteModal = (receiverId, value) => {
+      // Block self-sass!
+      if (state.currentUser === receiverId) {
+        alert('🚫 ILLEGAL MOVE! 🚫\n\nYou cannot give sass or apolo-sass to yourself!\n\nNice try though! 😏');
+        return;
+      }
+      
       state.noteModal = { receiverId, value };
       state.selectedCategory = 'top5'; // Always start with top 5
       render();
@@ -1533,10 +1545,9 @@
 
     window.selectReasonAndSave = (reason) => {
       state.selectedReason = reason;
-      // Auto-save after selecting
-      const textarea = document.getElementById('noteTextarea');
-      const note = textarea ? textarea.value : '';
-      addSassEvent(state.noteModal.receiverId, state.noteModal.value, note, reason);
+      // Just select the reason, don't auto-save anymore
+      // This allows adding custom notes to preset reasons
+      render();
     };
 
     window.saveNote = () => {
@@ -1602,108 +1613,3 @@
   </script>
 </body>
 </html>
-🎤 YOOOO!!! THE RICK ROSS GRUNT TRACKER IS READY!!! 🎤
-
-📋 COPY ALL THE CODE ABOVE ⬆️
-🔥 WHAT'S NEW - RICK ROSS GRUNT TRACKER!!!
-😎 "DROP A GRUNT" Button:
-BIG GOLD button under each player's sass buttons
-Says: "😎 DROP A GRUNT 😎"
-Doesn't affect sass scores - PURE VIBES ONLY!
-🎤 The Grunt Modal:
-Opens with EPIC styling:
-
-Gold/orange/red gradient border
-Dark background (Rick Ross vibes!)
-"🎤 DROP A GRUNT 🎤" header
-"RICK ROSS STYLE - NO SASS POINTS, JUST VIBES!"
-6 Grunt Types:
-
-😎 UNH! - Cool (blue gradient)
-🎉 WOO! - Happy (yellow/orange)
-🔥 AYYY! - Fired Up (red/orange)
-😤 HUH! - Angry (purple/pink)
-👑 BOSS! - Feeling Bossy (gold)
-😋 MMMM! - Tasty (green)
-Each button has:
-
-Hover scale effect
-White border
-Big emoji
-Sound text
-Label
-📊 GRUNT LEADERBOARD (Stats Tab):
-Dark theme card with gold accents:
-
-🎤 GRUNT LEADERBOARD header
-Shows each player's total grunts
-Breakdown by grunt type
-"RECENT GRUNTS" section showing last 5
-Example:
-
-┌─────────────────────────────┐
-│  🎤 GRUNT LEADERBOARD 🎤    │
-├─────────────────────────────┤
-│ Nayra          12 GRUNTS    │
-│ 😎 5  🎉 3  🔥 2  👑 2     │
-├─────────────────────────────┤
-│ RECENT GRUNTS:              │
-│ Nayra  😎 UNH!    3:45 PM  │
-│ Ezra   🔥 AYYY!   3:42 PM  │
-│ Justin 👑 BOSS!   3:40 PM  │
-└─────────────────────────────┘
-🎉 Grunt Alert:
-When someone drops a grunt:
-
-😎 UNH! 😎
-
-Nayra dropped a Cool grunt!
-
-No sass points affected - just pure vibes! 😎
-💾 Data Structure:
-javascript
-{
-  id: timestamp,
-  timestamp: Date.now(),
-  playerId: 'nayra',
-  gruntId: 'unh',
-  sound: 'UNH!',
-  emoji: '😎',
-  label: 'Cool',
-  date: '2024-12-02',
-  time: '3:45 PM'
-}
-✨ KEY FEATURES:
-✅ NO SASS IMPACT - Pure entertainment!
-✅ Real-time sync - Everyone sees grunts instantly
-✅ Leaderboard tracking - Who's the grunt king?
-✅ Recent grunt feed - See the latest drops
-✅ Epic visuals - Rick Ross approved styling
-✅ 6 grunt types - Express ALL the moods
-✅ Hover effects - Buttons feel ALIVE
-✅ Dark theme - Professional boss vibes
-
-🎮 How It Works:
-Click "😎 DROP A GRUNT 😎"
-Pick your vibe (UNH!, WOO!, AYYY!, etc.)
-Alert pops up with your grunt
-Shows in Stats leaderboard
-NO sass points changed!
-📱 Perfect For:
-Celebrating without affecting scores
-Expressing frustration (😤 HUH!)
-Hyping up wins (🔥 AYYY!)
-Feeling bossy (👑 BOSS!)
-Just having FUN! (🎉 WOO!)
-🚀 Deploy:
-Copy code above
-Paste into GitHub index.html
-Commit: v4.1 - Rick Ross Grunt Tracker 🎤
-Wait 2 minutes
-Hard refresh and DROP SOME GRUNTS!
-THIS IS HILARIOUS AND AWESOME!!! 😂🔥👑
-
-UNH!!! 😎
-
-
-
